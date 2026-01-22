@@ -9,7 +9,9 @@ const basePath = isGitHubActions && repoName ? `/${repoName}` : "";
 
 const nextConfig: NextConfig = {
   output: "export",
-  trailingSlash: true,
+  // In dev, enabling trailingSlash can lead to confusing redirects/404s.
+  // On GitHub Pages we want directory-style URLs (…/index.html), so keep it on there.
+  trailingSlash: isGitHubActions,
   basePath,
   assetPrefix: basePath,
   images: {

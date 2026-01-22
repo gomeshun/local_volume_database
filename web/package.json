@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prepare:data": "node scripts/generate-datasets.mjs",
+    "predev": "npm run prepare:data",
     "dev": "next dev",
+    "prebuild": "npm run prepare:data",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
