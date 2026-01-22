@@ -5,14 +5,24 @@ import styles from "@/app/site.module.css";
 
 type Row = Record<string, string>;
 
+function makeRowId(row: Row, idx: number): string {
+  const key = (row.key ?? "").trim();
+  if (key) return key;
+  const name = (row.name ?? "").trim();
+  if (name) return name;
+  return String(idx);
+}
+
 export function DatasetTable({
   columns,
   rows,
-  onSelect,
+  selectedId,
+  onToggleSelect,
 }: {
   columns: string[];
   rows: Row[];
-  onSelect: (row: Row) => void;
+  selectedId: string | null;
+  onToggleSelect: (row: Row, rowId: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
@@ -25,15 +35,17 @@ export function DatasetTable({
     return [...selected, ...rest].slice(0, 10);
   }, [columns]);
 
+  const indexedRows = useMemo(() => rows.map((row, idx) => ({ row, idx })), [rows]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((r) => {
-      const key = (r.key ?? "").toLowerCase();
-      const name = (r.name ?? "").toLowerCase();
+    if (!q) return indexedRows;
+    return indexedRows.filter(({ row }) => {
+      const key = (row.key ?? "").toLowerCase();
+      const name = (row.name ?? "").toLowerCase();
       return key.includes(q) || name.includes(q);
     });
-  }, [query, rows]);
+  }, [indexedRows, query]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageRows = filtered.slice(page * pageSize, (page + 1) * pageSize);
@@ -87,21 +99,31 @@ export function DatasetTable({
             </tr>
           </thead>
           <tbody>
-            {pageRows.map((r, idx) => (
-              <tr key={`${r.key ?? "row"}-${idx}`}>
+            {pageRows.map(({ row, idx }) => {
+              const rowId = makeRowId(row, idx);
+              const isSelected = selectedId != null && rowId === selectedId;
+              return (
+                <tr
+                  key={`${rowId}-${idx}`}
+                  className={isSelected ? styles.selectedRow : undefined}
+                  onClick={() => onToggleSelect(row, rowId)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onToggleSelect(row, rowId);
+                    }
+                  }}
+                >
                 {visibleColumns.map((c) => (
                   <td key={c} className={styles.td}>
-                    {c === "name" || c === "key" ? (
-                      <button className={styles.rowButton} onClick={() => onSelect(r)}>
-                        {r[c] ?? ""}
-                      </button>
-                    ) : (
-                      r[c] ?? ""
-                    )}
+                    {row[c] ?? ""}
                   </td>
                 ))}
-              </tr>
-            ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

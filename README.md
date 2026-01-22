@@ -1,5 +1,23 @@
 # **local_volume_database** 
 
+## Fork notice (web app)
+
+This repository is a fork of the upstream LVDB project: https://github.com/apace7/local_volume_database
+
+- The `web/` directory contains an **unofficial** web UI (Next.js) intended to make it easier to browse LVDB tables.
+- This fork is **not affiliated with or endorsed by** the upstream LVDB maintainers.
+
+For the web UI, you can optionally set fork-specific links (repo/site/issues) via environment variables; see `web/.env.example`.
+
+### License / reuse
+
+Upstream (and this fork) includes a **CC0 1.0 Universal** dedication (see `LICENSE`). In practical terms, this permits reuse, modification, and redistribution (including public web deployment). While CC0 does not require attribution, this fork keeps explicit credit links to the upstream project and encourages following the upstream paper citation guidance.
+
+### Issues
+
+- LVDB data/content issues: upstream LVDB project
+- Web UI issues: this fork's issue tracker
+
 ## Web app (in this repo)
 
 We are building a researcher-friendly web application under `web/` (Next.js) and publishing it on GitHub Pages.

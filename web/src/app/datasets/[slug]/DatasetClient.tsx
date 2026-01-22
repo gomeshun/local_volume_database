@@ -1,22 +1,71 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import styles from "@/app/site.module.css";
 import type { Dataset } from "@/generated/datasets";
 import { DatasetTable } from "@/components/DatasetTable";
 import { AladinLiteViewer } from "@/components/AladinLiteViewer";
 
+type Row = Record<string, string>;
+
+function makeRowId(row: Row, idx: number): string {
+  const key = (row.key ?? "").trim();
+  if (key) return key;
+  const name = (row.name ?? "").trim();
+  if (name) return name;
+  return String(idx);
+}
+
 export default function DatasetClient({ dataset }: { dataset: Dataset }) {
-  const [selected, setSelected] = useState(dataset.rows[0] ?? null);
+  const [selection, setSelection] = useState<{ id: string; row: Row } | null>(null);
+
+  const rowById = useMemo(() => {
+    const map = new Map<string, Row>();
+    dataset.rows.forEach((row, idx) => {
+      map.set(makeRowId(row, idx), row);
+    });
+    return map;
+  }, [dataset.rows]);
+
+  const sources = useMemo(() => {
+    const out: Array<{ id: string; ra: number; dec: number; title?: string }> = [];
+    dataset.rows.forEach((row, idx) => {
+      const ra = Number(row.ra);
+      const dec = Number(row.dec);
+      if (!Number.isFinite(ra) || !Number.isFinite(dec)) return;
+      const id = makeRowId(row, idx);
+      out.push({ id, ra, dec, title: row.name ?? row.key ?? undefined });
+    });
+    return out;
+  }, [dataset.rows]);
+
+  const initialTarget = useMemo(() => {
+    const first = sources[0];
+    if (!first) return "0 0";
+    return `${first.ra} ${first.dec}`;
+  }, [sources]);
 
   const coords = useMemo(() => {
-    if (!selected) return null;
-    const ra = Number(selected.ra);
-    const dec = Number(selected.dec);
+    if (!selection) return null;
+    const ra = Number(selection.row.ra);
+    const dec = Number(selection.row.dec);
     if (!Number.isFinite(ra) || !Number.isFinite(dec)) return null;
     return { ra, dec };
-  }, [selected]);
+  }, [selection]);
+
+  const toggleSelectionById = useCallback(
+    (rowId: string) => {
+      const row = rowById.get(rowId);
+      if (!row) return;
+      setSelection((prev) => (prev?.id === rowId ? null : { id: rowId, row }));
+    },
+    [rowById],
+  );
+
+  const toggleSelectionByRow = useCallback((row: Row, rowId: string) => {
+    setSelection((prev) => (prev?.id === rowId ? null : { id: rowId, row }));
+  }, []);
 
   return (
     <div>
@@ -31,26 +80,26 @@ export default function DatasetClient({ dataset }: { dataset: Dataset }) {
 
       <div className={styles.split} style={{ marginTop: 16 }}>
         <div>
-          <DatasetTable columns={dataset.columns} rows={dataset.rows} onSelect={setSelected} />
+          <DatasetTable
+            columns={dataset.columns}
+            rows={dataset.rows}
+            selectedId={selection?.id ?? null}
+            onToggleSelect={toggleSelectionByRow}
+          />
         </div>
         <div className={styles.panel}>
           <div className={styles.panelTitle}>Sky view (Aladin Lite)</div>
-          {coords ? (
-            <>
-              <div className={styles.muted} style={{ marginBottom: 10 }}>
-                {selected?.name ?? selected?.key ?? "(selected)"} @ RA={coords.ra}, Dec={coords.dec}
-              </div>
-              <AladinLiteViewer
-                ra={coords.ra}
-                dec={coords.dec}
-                title={selected?.name ?? selected?.key ?? undefined}
-              />
-            </>
-          ) : (
-            <div className={styles.muted}>
-              Select a row with valid `ra`/`dec` to show it.
-            </div>
-          )}
+          <div className={styles.muted} style={{ marginBottom: 10 }}>
+            {coords
+              ? `${selection?.row.name ?? selection?.row.key ?? "(selected)"} @ RA=${coords.ra}, Dec=${coords.dec}`
+              : "No selection (showing all sources)."}
+          </div>
+          <AladinLiteViewer
+            sources={sources}
+            initialTarget={initialTarget}
+            selectedId={selection?.id ?? null}
+            onToggleSelectId={toggleSelectionById}
+          />
         </div>
       </div>
     </div>

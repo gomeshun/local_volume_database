@@ -22,6 +22,35 @@
   gap: 16px;
 }
 
+.headerRight {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.navLink {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+  font-size: 12px;
+  opacity: 0.85;
+}
+
 .brand {
   display: flex;
   flex-direction: column;
@@ -42,6 +71,28 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px 16px 48px;
+}
+
+.footer {
+  border-top: 1px solid rgba(127, 127, 127, 0.25);
+  background: color-mix(in srgb, var(--background) 96%, transparent);
+}
+
+.footerInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .grid {
@@ -118,6 +169,14 @@
   background: color-mix(in srgb, var(--background) 92%, transparent);
   text-align: left;
   font-weight: 600;
+}
+
+.selectedRow td {
+  background: color-mix(in srgb, var(--foreground) 10%, var(--background));
+}
+
+.selectedRow:hover td {
+  background: color-mix(in srgb, var(--foreground) 14%, var(--background));
 }
 
 .rowButton {

@@ -9,6 +9,9 @@ export default function Home() {
       <p className={styles.muted} style={{ marginTop: 8 }}>
         Initial milestone: show LVDB tables as-is, then visualize with Aladin Lite.
       </p>
+      <p className={styles.muted} style={{ marginTop: 8 }}>
+        This is an unofficial fork. See <Link href="/about">About / Credits</Link>.
+      </p>
 
       <div className={styles.grid}>
         {datasets.map((d) => (

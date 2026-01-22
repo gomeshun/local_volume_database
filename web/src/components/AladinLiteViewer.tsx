@@ -5,21 +5,34 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/app/site.module.css";
 
 export function AladinLiteViewer({
-  ra,
-  dec,
-  title,
+  sources,
+  initialTarget,
+  selectedId,
+  onToggleSelectId,
 }: {
-  ra: number;
-  dec: number;
-  title?: string;
+  sources: Array<{ id: string; ra: number; dec: number; title?: string }>;
+  initialTarget: string;
+  selectedId: string | null;
+  onToggleSelectId?: (rowId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const aladinRef = useRef<any>(null);
   const catalogRef = useRef<any>(null);
+  const sourceByIdRef = useRef<Map<string, any>>(new Map());
+  const selectedSourceRef = useRef<any>(null);
+  const onToggleSelectIdRef = useRef<typeof onToggleSelectId>(onToggleSelectId);
   const [loaded, setLoaded] = useState(false);
+  const [viewerReady, setViewerReady] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
 
-  const target = useMemo(() => `${ra} ${dec}`, [ra, dec]);
+  const sourcesKey = useMemo(() => {
+    // cheap-ish change detector
+    return `${sources.length}:${sources[0]?.id ?? ""}:${sources[sources.length - 1]?.id ?? ""}`;
+  }, [sources]);
+
+  useEffect(() => {
+    onToggleSelectIdRef.current = onToggleSelectId;
+  }, [onToggleSelectId]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -56,25 +69,24 @@ export function AladinLiteViewer({
       if (!aladinRef.current) {
         aladinRef.current = A.aladin(containerRef.current, {
           survey: "P/DSS2/color",
-          fov: 1,
-          target,
+          fov: 180,
+          target: initialTarget,
           showReticle: true,
         });
 
         catalogRef.current = A.catalog({ name: "LVDB", sourceSize: 8, color: "#ff3b30" });
         aladinRef.current.addCatalog(catalogRef.current);
-      }
 
-      try {
-        aladinRef.current.gotoObject(target);
-      } catch {
-        aladinRef.current.gotoRaDec(ra, dec);
-      }
+        aladinRef.current.on("objectClicked", (obj: any) => {
+          if (!obj) return;
+          const catalog = typeof obj.getCatalog === "function" ? obj.getCatalog() : null;
+          if (!catalog || catalog.name !== "LVDB") return;
+          const rowId = obj?.data?.id;
+          if (typeof rowId !== "string" || rowId.length === 0) return;
+          onToggleSelectIdRef.current?.(rowId);
+        });
 
-      if (catalogRef.current) {
-        catalogRef.current.removeAll();
-        const src = A.source(ra, dec, { popupTitle: title ?? target });
-        catalogRef.current.addSources([src]);
+        setViewerReady(true);
       }
 
       setInitError(null);
@@ -91,7 +103,55 @@ export function AladinLiteViewer({
     return () => {
       cancelled = true;
     };
-  }, [dec, loaded, ra, target, title]);
+  }, [initialTarget, loaded]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    if (!viewerReady) return;
+    if (!window.A) return;
+    if (!aladinRef.current) return;
+    if (!catalogRef.current) return;
+
+    const A = window.A;
+
+    catalogRef.current.removeAll();
+    sourceByIdRef.current = new Map();
+
+    // Add all sources
+    const srcs: any[] = [];
+    for (const s of sources) {
+      if (!Number.isFinite(s.ra) || !Number.isFinite(s.dec)) continue;
+      const src = A.source(s.ra, s.dec, { id: s.id, title: s.title ?? "" });
+      srcs.push(src);
+      sourceByIdRef.current.set(s.id, src);
+    }
+    catalogRef.current.addSources(srcs);
+  }, [loaded, viewerReady, sources, sourcesKey]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    if (!viewerReady) return;
+    if (!aladinRef.current) return;
+
+    // Clear previous highlight
+    if (selectedSourceRef.current && typeof selectedSourceRef.current.deselect === "function") {
+      selectedSourceRef.current.deselect();
+    }
+    selectedSourceRef.current = null;
+
+    if (!selectedId) return;
+    const src = sourceByIdRef.current.get(selectedId);
+    if (!src) return;
+
+    if (typeof src.select === "function") src.select();
+    selectedSourceRef.current = src;
+
+    try {
+      aladinRef.current.gotoRaDec(src.ra, src.dec);
+    } catch {
+      // ignore
+    }
+  }, [loaded, viewerReady, selectedId]);
 
   return (
     <div>
