@@ -1,5 +1,26 @@
 # **local_volume_database** 
 
+## Web app (in this repo)
+
+We are building a researcher-friendly web application under `web/` (Next.js) and publishing it on GitHub Pages.
+
+### Roadmap memo (incremental)
+
+1. Start by displaying the database content as-is (tables/lists/details from the CSV/YAML included in this repo)
+2. Add graphical sky visualization using the Aladin Lite API (RA/Dec)
+3. Gradually integrate SIMBAD / NED / VizieR to fetch richer info (object position, member-star catalogs, etc.)
+
+### Local dev
+
+Run from `web/`:
+
+    npm install
+    npm run dev
+
+### GitHub Pages deploy
+
+Pushing to `main` triggers a GitHub Actions workflow that builds a static export and deploys it to Pages: `.github/workflows/deploy.yml`.
+
 ### DESCRIPTION:
 
 The LVDB is a database of dwarf galaxies and star clusters in the Local Volume. The database is complete for dwarf galaxies within ~5 Mpc. 
