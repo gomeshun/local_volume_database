@@ -56,7 +56,6 @@ async function readCsv({ filePath, limitRows }) {
   const rows = [];
 
   for (let i = 1; i < lines.length; i += 1) {
-    if (rows.length >= limitRows) break;
     const values = parseCsvLine(lines[i]);
     const row = {};
     for (let c = 0; c < header.length; c += 1) {
@@ -68,27 +67,54 @@ async function readCsv({ filePath, limitRows }) {
   return { header, rows, totalLines: lines.length - 1 };
 }
 
+function humanizeSlug(slug) {
+  const words = String(slug)
+    .split(/[_\-]+/)
+    .filter(Boolean)
+    .map((w) => w.toLowerCase());
+
+  const preserveUpper = new Set(["mw", "m31"]);
+  const keepLower = new Set(["gc"]);
+
+  return words
+    .map((w) => {
+      if (preserveUpper.has(w)) return w.toUpperCase();
+      if (keepLower.has(w)) return w;
+      return w.length ? w[0].toUpperCase() + w.slice(1) : w;
+    })
+    .join(" ");
+}
+
 async function main() {
-  const datasets = [
-    {
-      slug: "dwarf_mw",
-      title: "Dwarf galaxies (Milky Way)",
-      file: "dwarf_mw.csv",
-      limitRows: 300,
-    },
-    {
-      slug: "dwarf_all",
-      title: "Dwarf galaxies (All)",
-      file: "dwarf_all.csv",
-      limitRows: 500,
-    },
-    {
-      slug: "gc_harris",
-      title: "Globular clusters (Harris)",
-      file: "gc_harris.csv",
-      limitRows: 300,
-    },
-  ];
+  const excludeFiles = new Set(["j_factor.csv", "pm_overview.csv"]);
+
+  const titleBySlug = {
+    dwarf_mw: "Dwarf galaxies (Milky Way)",
+    dwarf_all: "Dwarf galaxies (All)",
+    dwarf_m31: "Dwarf galaxies (M31)",
+    dwarf_local_field: "Dwarf galaxies (Local field)",
+    dwarf_local_field_distant: "Dwarf galaxies (Local field, distant)",
+    gc_harris: "Globular clusters (Harris)",
+    gc_dwarf_hosted: "Globular clusters (Dwarf-hosted)",
+    gc_mw_new: "Globular clusters (Milky Way, new)",
+    gc_ambiguous: "Globular clusters (Ambiguous)",
+    gc_other: "Globular clusters (Other)",
+  };
+
+  const dataDir = path.resolve(REPO_ROOT, "data");
+  const files = (await fs.readdir(dataDir)).filter((f) => f.endsWith(".csv"));
+
+  const datasets = files
+    .filter((f) => !excludeFiles.has(f))
+    .sort((a, b) => a.localeCompare(b))
+    .map((file) => {
+      const slug = path.basename(file, ".csv");
+      return {
+        slug,
+        title: titleBySlug[slug] ?? humanizeSlug(slug),
+        file,
+      };
+    });
 
   const generatedDir = path.resolve(process.cwd(), "src", "generated");
   await fs.mkdir(generatedDir, { recursive: true });
@@ -103,37 +129,13 @@ async function main() {
 
   pieces.push("export const datasets: Dataset[] = [");
 
-  const defaultColumns = [
-    "key",
-    "name",
-    "ra",
-    "dec",
-    "host",
-    "confirmed_real",
-    "confirmed_galaxy",
-    "distance",
-    "distance_modulus",
-    "M_V",
-    "mass_stellar",
-    "ll",
-    "bb",
-  ];
-
   for (const ds of datasets) {
     const csvPath = path.resolve(REPO_ROOT, "data", ds.file);
-    const { header, rows, totalLines } = await readCsv({
-      filePath: csvPath,
-      limitRows: ds.limitRows,
-    });
+    const { header, rows, totalLines } = await readCsv({ filePath: csvPath });
 
-    const columns = defaultColumns.filter((c) => header.includes(c));
-
-    const orderedRows = rows.map((r) => {
-      /** @type {Record<string, string>} */
-      const out = {};
-      for (const c of columns) out[c] = r[c] ?? "";
-      return out;
-    });
+    // Preserve the CSV header order and include all columns.
+    const columns = header;
+    const orderedRows = rows;
 
     pieces.push("  {");
     pieces.push(`    slug: ${JSON.stringify(ds.slug)},`);

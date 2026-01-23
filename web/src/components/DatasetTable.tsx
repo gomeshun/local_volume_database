@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   type ColumnDef,
   type SortingState,
@@ -60,14 +60,34 @@ export function DatasetTable({
 }) {
   const [query, setQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-
-  const visibleColumns = useMemo(() => {
-    const preferred = ["key", "name", "ra", "dec", "host", "distance", "M_V", "mass_stellar"];
-    const selected = preferred.filter((c) => columns.includes(c));
-    const rest = columns.filter((c) => !selected.includes(c));
-    return [...selected, ...rest].slice(0, 10);
+  const orderedColumns = useMemo(() => {
+    const preferredOrder = ["name", "ra", "dec", "distance", "key"];
+    const preferred = preferredOrder.filter((c) => columns.includes(c));
+    const rest = columns.filter((c) => !preferred.includes(c));
+    return [...preferred, ...rest];
   }, [columns]);
+
+  const initialColumnVisibility = useMemo<VisibilityState>(() => {
+    const preferredVisible = new Set(["name", "ra", "dec", "distance"]);
+    const vis: VisibilityState = {};
+
+    for (const c of columns) {
+      vis[c] = preferredVisible.has(c);
+    }
+
+    // If the dataset doesn't have any of the preferred columns, show a few columns by default.
+    if (!Object.values(vis).some(Boolean)) {
+      for (const c of columns.slice(0, 6)) vis[c] = true;
+    }
+
+    return vis;
+  }, [columns]);
+
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => initialColumnVisibility);
+
+  useEffect(() => {
+    setColumnVisibility(initialColumnVisibility);
+  }, [initialColumnVisibility]);
 
   const indexedRows = useMemo(() => rows.map((row, idx) => ({ row, idx })), [rows]);
 
@@ -76,7 +96,7 @@ export function DatasetTable({
   }, [indexedRows]);
 
   const columnsDef = useMemo<ColumnDef<RowData>[]>(() => {
-    return visibleColumns.map((c) => ({
+    return orderedColumns.map((c) => ({
       id: c,
       enableHiding: true,
       enableSorting: true,
@@ -102,7 +122,7 @@ export function DatasetTable({
       accessorFn: (d) => d.row[c] ?? "",
       cell: (info) => String(info.getValue() ?? ""),
     }));
-  }, [visibleColumns]);
+  }, [orderedColumns]);
 
   const table = useReactTable({
     data,
@@ -159,7 +179,7 @@ export function DatasetTable({
                 Columns
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="max-h-[60vh] w-72 overflow-y-auto">
               <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {table

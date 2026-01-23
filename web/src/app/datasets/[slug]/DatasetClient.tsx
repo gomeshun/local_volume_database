@@ -75,7 +75,7 @@ export default function DatasetClient({ dataset }: { dataset: Dataset }) {
 
       <h1 className="text-xl font-semibold tracking-tight">{dataset.title}</h1>
       <div className="mt-1 text-sm text-muted-foreground">
-        Parsed rows: {dataset.rows.length.toLocaleString()} (source total: {dataset.totalRows.toLocaleString()})
+        Rows: {dataset.rows.length.toLocaleString()}
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
