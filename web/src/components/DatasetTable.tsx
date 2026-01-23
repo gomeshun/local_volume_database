@@ -86,6 +86,19 @@ function formatColumnLabel(columnId: string): string {
   return unit ? `${columnId} (${unit})` : columnId;
 }
 
+function isRefColumn(columnId: string): boolean {
+  return columnId === "ref" || columnId.startsWith("ref_");
+}
+
+function bibcodeFromRefValue(value: string): string | null {
+  const s = String(value ?? "").trim();
+  if (!s) return null;
+  const idx = s.search(/\d/);
+  if (idx < 0) return null;
+  const bibcode = s.slice(idx);
+  return bibcode.length ? bibcode : null;
+}
+
 function makeRowId(row: Row, idx: number): string {
   const key = (row.key ?? "").trim();
   if (key) return key;
@@ -167,7 +180,30 @@ export function DatasetTable({
         </Button>
       ),
       accessorFn: (d) => d.row[c] ?? "",
-      cell: (info) => String(info.getValue() ?? ""),
+      cell: (info) => {
+        const raw = String(info.getValue() ?? "");
+        if (!raw) return "";
+
+        if (isRefColumn(c)) {
+          const bibcode = bibcodeFromRefValue(raw);
+          if (bibcode) {
+            const href = `https://ui.adsabs.harvard.edu/abs/${encodeURIComponent(bibcode)}/abstract`;
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {raw}
+              </a>
+            );
+          }
+        }
+
+        return raw;
+      },
     }));
   }, [orderedColumns]);
 
