@@ -39,6 +39,53 @@ type RowData = {
   rowId: string;
 };
 
+const COLUMN_UNITS: Record<string, string> = {
+  ra: "deg",
+  dec: "deg",
+  ll: "deg",
+  bb: "deg",
+  rhalf: "arcmin",
+  rcore: "arcmin",
+  rking: "arcmin",
+  rad_sersic: "arcmin",
+  position_angle: "deg",
+  distance_modulus: "mag",
+  distance: "kpc",
+  rhalf_physical: "pc",
+  rhalf_sph_physical: "pc",
+  apparent_magnitude_v: "mag",
+  apparent_magnitude_V: "mag",
+  M_V: "mag",
+  surface_brightness_rhalf: "mag arcsec^-2",
+  vlos_systemic: "km/s",
+  vlos_sigma: "km/s",
+  metallicity: "dex",
+  metallicity_spectroscopic: "dex",
+  metallicity_spectroscopic_sigma: "dex",
+  metallicity_photometric: "dex",
+  pmra: "mas/yr",
+  pmdec: "mas/yr",
+  age: "Gyr",
+  flux_HI: "Jy km s−1",
+};
+
+function getUnitForColumn(columnId: string): string | null {
+  if (COLUMN_UNITS[columnId]) return COLUMN_UNITS[columnId];
+
+  const m = columnId.match(/^(.*)_(em|ep|ul)$/);
+  if (m) {
+    const base = m[1];
+    return COLUMN_UNITS[base] ?? null;
+  }
+
+  return null;
+}
+
+function formatColumnLabel(columnId: string): string {
+  const unit = getUnitForColumn(columnId);
+  return unit ? `${columnId} (${unit})` : columnId;
+}
+
 function makeRowId(row: Row, idx: number): string {
   const key = (row.key ?? "").trim();
   if (key) return key;
@@ -107,9 +154,9 @@ export function DatasetTable({
           size="sm"
           className="-ml-2 h-8 px-2 font-medium text-muted-foreground hover:text-foreground"
           onClick={column.getToggleSortingHandler()}
-          title={c}
+          title={formatColumnLabel(c)}
         >
-          <span className="max-w-[14rem] truncate whitespace-nowrap">{c}</span>
+          <span className="max-w-[14rem] truncate whitespace-nowrap">{formatColumnLabel(c)}</span>
           {column.getIsSorted() === "asc" ? (
             <ArrowUp className="h-4 w-4 opacity-70" aria-label="Sorted ascending" />
           ) : column.getIsSorted() === "desc" ? (
@@ -191,7 +238,7 @@ export function DatasetTable({
                     checked={col.getIsVisible()}
                     onCheckedChange={(checked) => col.toggleVisibility(Boolean(checked))}
                   >
-                    {String(col.id)}
+                    {formatColumnLabel(String(col.id))}
                   </DropdownMenuCheckboxItem>
                 ))}
             </DropdownMenuContent>
