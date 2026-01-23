@@ -36,7 +36,14 @@
 
 .navLink {
   font-size: 13px;
-  opacity: 0.9;
+  opacity: 0.95;
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 2px;
+}
+
+.navLink:hover {
+  text-decoration-thickness: 2px;
 }
 
 .pill {
@@ -58,8 +65,20 @@
 }
 
 .brandTitle {
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-family: var(--font-geist-mono);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.brandTitle:hover {
+  text-decoration: none;
+}
+
+.brandTitle:visited {
+  color: inherit;
 }
 
 .brandSub {
@@ -142,6 +161,16 @@
   border-radius: 10px;
   border: 1px solid rgba(127, 127, 127, 0.35);
   background: color-mix(in srgb, var(--background) 88%, transparent);
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.button:hover {
+  text-decoration: none;
+}
+
+.button:visited {
+  color: inherit;
 }
 
 .tableWrap {
