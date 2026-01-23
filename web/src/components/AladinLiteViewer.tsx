@@ -2,7 +2,9 @@
 
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
-import styles from "@/app/site.module.css";
+import { Loader2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 export function AladinLiteViewer({
   sources,
@@ -153,6 +155,18 @@ export function AladinLiteViewer({
     }
   }, [loaded, viewerReady, selectedId]);
 
+  const reloadButton = (
+    <Button
+      type="button"
+      size="sm"
+      variant="ghost"
+      className="h-7 px-2 text-xs text-muted-foreground"
+      onClick={() => window.location.reload()}
+    >
+      Having trouble loading? Reload the page
+    </Button>
+  );
+
   return (
     <div>
       <Script
@@ -160,15 +174,45 @@ export function AladinLiteViewer({
         strategy="afterInteractive"
         onLoad={() => setLoaded(true)}
       />
-      <div className={styles.aladin} ref={containerRef} />
+      <div
+        className="h-[min(70vh,760px)] min-h-[420px] w-full overflow-hidden rounded-md"
+        ref={containerRef}
+      />
+
       {!loaded && (
-        <div className={styles.muted} style={{ marginTop: 8 }}>
-          Loading Aladin Lite…
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          <span>Loading Aladin Lite…</span>
+          {reloadButton}
         </div>
       )}
+
+      {loaded && !viewerReady && !initError && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          <span>Initializing Aladin Lite…</span>
+          {reloadButton}
+        </div>
+      )}
+
       {loaded && initError && (
-        <div className={styles.muted} style={{ marginTop: 8 }}>
-          Aladin Lite failed to initialize: {initError}
+        <div className="mt-3 space-y-2 rounded-md border bg-muted/30 p-3">
+          <div className="text-sm font-medium">Aladin Lite failed to initialize</div>
+          <div className="text-sm text-muted-foreground">
+            Please reload the page and try again. If it still fails, your network may be blocking
+            the Aladin CDN.
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => window.location.reload()}
+            >
+              Reload page
+            </Button>
+            <div className="text-xs text-muted-foreground">Details: {initError}</div>
+          </div>
         </div>
       )}
     </div>

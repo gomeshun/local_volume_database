@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-import styles from "./site.module.css";
 import { siteConfig } from "./siteConfig";
+import { Badge } from "@/components/ui/badge";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,57 +34,68 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <div className={styles.layout}>
-          <header className={styles.header}>
-            <div className={styles.headerInner}>
-              <div className={styles.brand}>
-                <Link href="/" className={styles.brandTitle}>
+        <div className="min-h-dvh">
+          <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto flex max-w-6xl items-baseline justify-between gap-4 px-4 py-3">
+              <div className="flex flex-col gap-0.5">
+                <Link
+                  href="/"
+                  className="font-mono text-sm font-extrabold uppercase tracking-[0.18em] text-foreground no-underline"
+                >
                   LVDB Explorer
                 </Link>
-                <div className={styles.brandSub}>Local Volume Database quick viewer</div>
+                <div className="text-xs text-muted-foreground">Local Volume Database quick viewer</div>
               </div>
-              <div className={styles.headerRight}>
-                <nav className={styles.nav}>
-                  <Link href="/" className={styles.navLink}>
+
+              <div className="flex items-baseline gap-3">
+                <nav className="flex items-baseline gap-3">
+                  <Link href="/" className="text-sm">
                     Datasets
                   </Link>
-                  <Link href="/about" className={styles.navLink}>
+                  <Link href="/about" className="text-sm">
                     About
                   </Link>
                 </nav>
-                <div className={styles.pill} title="This web UI is an unofficial fork and is not affiliated with the upstream LVDB project.">
+                <Badge
+                  variant="secondary"
+                  className="opacity-90"
+                  title="This web UI is an unofficial fork and is not affiliated with the upstream LVDB project."
+                >
                   Unofficial fork
-                </div>
+                </Badge>
               </div>
             </div>
           </header>
-          <main className={styles.main}>{children}</main>
-          <footer className={styles.footer}>
-            <div className={styles.footerInner}>
-              <div className={styles.muted}>
+
+          <main className="mx-auto w-full max-w-6xl px-4 py-6">{children}</main>
+
+          <footer className="border-t bg-background/50">
+            <div className="mx-auto flex max-w-6xl flex-wrap items-baseline justify-between gap-x-4 gap-y-2 px-4 py-3">
+              <div className="text-sm text-muted-foreground">
                 Built from LVDB (Local Volume Database). Not affiliated with upstream.
               </div>
-              <div className={styles.footerLinks}>
+
+              <div className="flex flex-wrap gap-3">
                 {siteConfig.forkSiteUrl && (
-                  <a className={styles.navLink} href={siteConfig.forkSiteUrl} target="_blank" rel="noreferrer">
+                  <a className="text-sm" href={siteConfig.forkSiteUrl} target="_blank" rel="noreferrer">
                     This site
                   </a>
                 )}
                 {siteConfig.forkRepoUrl && (
-                  <a className={styles.navLink} href={siteConfig.forkRepoUrl} target="_blank" rel="noreferrer">
+                  <a className="text-sm" href={siteConfig.forkRepoUrl} target="_blank" rel="noreferrer">
                     Fork repo
                   </a>
                 )}
-                <a className={styles.navLink} href="https://github.com/apace7/local_volume_database" target="_blank" rel="noreferrer">
+                <a className="text-sm" href="https://github.com/apace7/local_volume_database" target="_blank" rel="noreferrer">
                   Upstream repo
                 </a>
-                <a className={styles.navLink} href="https://arxiv.org/abs/2411.07424" target="_blank" rel="noreferrer">
+                <a className="text-sm" href="https://arxiv.org/abs/2411.07424" target="_blank" rel="noreferrer">
                   Paper (arXiv)
                 </a>
-                <a className={styles.navLink} href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noreferrer">
+                <a className="text-sm" href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noreferrer">
                   License (CC0 1.0)
                 </a>
-                <Link className={styles.navLink} href="/about">
+                <Link className="text-sm" href="/about">
                   Credits
                 </Link>
               </div>

@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import styles from "@/app/site.module.css";
 import type { Dataset } from "@/generated/datasets";
 import { DatasetTable } from "@/components/DatasetTable";
 import { AladinLiteViewer } from "@/components/AladinLiteViewer";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Row = Record<string, string>;
 
@@ -69,17 +69,17 @@ export default function DatasetClient({ dataset }: { dataset: Dataset }) {
 
   return (
     <div>
-      <div className={styles.muted} style={{ marginBottom: 12 }}>
+      <div className="mb-3 text-sm text-muted-foreground">
         <Link href="/">← Back</Link>
       </div>
 
-      <h1 style={{ fontSize: 22, letterSpacing: "-0.02em" }}>{dataset.title}</h1>
-      <div className={styles.muted} style={{ marginTop: 6 }}>
+      <h1 className="text-xl font-semibold tracking-tight">{dataset.title}</h1>
+      <div className="mt-1 text-sm text-muted-foreground">
         Parsed rows: {dataset.rows.length.toLocaleString()} (source total: {dataset.totalRows.toLocaleString()})
       </div>
 
-      <div className={styles.split} style={{ marginTop: 16 }}>
-        <div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="min-w-0">
           <DatasetTable
             columns={dataset.columns}
             rows={dataset.rows}
@@ -87,20 +87,24 @@ export default function DatasetClient({ dataset }: { dataset: Dataset }) {
             onToggleSelect={toggleSelectionByRow}
           />
         </div>
-        <div className={styles.panel}>
-          <div className={styles.panelTitle}>Sky view (Aladin Lite)</div>
-          <div className={styles.muted} style={{ marginBottom: 10 }}>
-            {coords
-              ? `${selection?.row.name ?? selection?.row.key ?? "(selected)"} @ RA=${coords.ra}, Dec=${coords.dec}`
-              : "No selection (showing all sources)."}
-          </div>
-          <AladinLiteViewer
-            sources={sources}
-            initialTarget={initialTarget}
-            selectedId={selection?.id ?? null}
-            onToggleSelectId={toggleSelectionById}
-          />
-        </div>
+        <Card className="min-w-0">
+          <CardHeader>
+            <CardTitle>Sky view (Aladin Lite)</CardTitle>
+            <CardDescription>
+              {coords
+                ? `${selection?.row.name ?? selection?.row.key ?? "(selected)"} @ RA=${coords.ra}, Dec=${coords.dec}`
+                : "No selection (showing all sources)."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AladinLiteViewer
+              sources={sources}
+              initialTarget={initialTarget}
+              selectedId={selection?.id ?? null}
+              onToggleSelectId={toggleSelectionById}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

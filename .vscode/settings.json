@@ -4,5 +4,9 @@
             "approve": true,
             "matchCommandLine": true
         }
+    },
+    "chat.agent.maxRequests": 250,
+    "files.associations": {
+        "*.css": "tailwindcss"
     }
 }
