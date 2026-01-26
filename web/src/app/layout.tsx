@@ -36,7 +36,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <div className="min-h-dvh">
           <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="mx-auto flex max-w-6xl items-baseline justify-between gap-4 px-4 py-3">
+            <div className="mx-auto flex max-w-7xl items-baseline justify-between gap-4 px-4 py-3">
               <div className="flex flex-col gap-0.5">
                 <Link
                   href="/"
@@ -67,10 +67,10 @@ export default function RootLayout({
             </div>
           </header>
 
-          <main className="mx-auto w-full max-w-6xl px-4 py-6">{children}</main>
+          <main className="mx-auto w-full max-w-7xl px-4 py-6">{children}</main>
 
           <footer className="border-t bg-background/50">
-            <div className="mx-auto flex max-w-6xl flex-wrap items-baseline justify-between gap-x-4 gap-y-2 px-4 py-3">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-baseline justify-between gap-x-4 gap-y-2 px-4 py-3">
               <div className="text-sm text-muted-foreground">
                 Built from LVDB (Local Volume Database). Not affiliated with upstream.
               </div>
