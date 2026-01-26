@@ -152,6 +152,164 @@ async function main() {
   const outPath = path.resolve(generatedDir, "datasets.ts");
   await fs.writeFile(outPath, pieces.join("\n"), "utf8");
   console.log(`Generated: ${path.relative(process.cwd(), outPath)}`);
+
+  // -----------------------------
+  // Build-time Vizier cache (incremental)
+  // -----------------------------
+  // Extract bibcodes from the generated datasets and fetch missing entries
+  // from Vizier's ASU-TSV endpoint. Results are stored in
+  // src/generated/vizier_catalogs.json and a TypeScript wrapper file for
+  // easy imports from the app. Only new bibcodes (not present in cache)
+  // are queried to avoid hammering Vizier on every build.
+
+  const vizierCacheJson = path.resolve(generatedDir, "vizier_catalogs.json");
+  const vizierCacheTs = path.resolve(generatedDir, "vizier_catalogs.ts");
+
+  // Read existing cache if present
+  let cache = {};
+  try {
+    const txt = await fs.readFile(vizierCacheJson, "utf8");
+    cache = JSON.parse(txt);
+    console.log(`Loaded existing Vizier cache: ${Object.keys(cache).length} entries`);
+  } catch (err) {
+    cache = {};
+    console.log("No existing Vizier cache found; will create a new one.");
+  }
+
+  // Find bibcodes in the datasets output by searching for patterns like
+  // 2011ApJ...733...46S (we match starting at the year)
+  const fileContent = pieces.join("\n");
+  // Match bibcode-like substrings anywhere in the text. Bibcodes in our
+  // CSVs can appear with leading author text (e.g. "Simon2011ApJ...733...46S"),
+  // so we match the numeric-year-starting portion directly.
+  const bibRegex = /(\d{4}[A-Za-z]{1,6}\.+\d+\.+\d+\w?)/g;
+  const found = new Set();
+  for (const m of fileContent.matchAll(bibRegex)) {
+    found.add(m[1]);
+  }
+
+  const bibcodes = Array.from(found).sort();
+  console.log(`Found ${bibcodes.length} unique bibcodes in datasets`);
+
+  // Determine which bibcodes are missing in cache
+  const missing = bibcodes.filter((b) => !(b in cache));
+  console.log(`Need to fetch ${missing.length} missing bibcodes`);
+
+  // Helper: limit concurrency
+  async function mapLimit(arr, limit, fn) {
+    const ret = [];
+    const executing = [];
+    for (const item of arr) {
+      const p = Promise.resolve().then(() => fn(item));
+      ret.push(p);
+      executing.push(p);
+      if (executing.length >= limit) {
+        await Promise.race(executing).catch(() => {});
+        // Remove settled promises
+        for (let i = executing.length - 1; i >= 0; i--) {
+          if (executing[i].settled) executing.splice(i, 1);
+        }
+        // Fallback: rebuild executing to only include pending ones
+        executing.length = 0;
+        for (const r of ret) {
+          if (!r.finally) continue;
+        }
+      }
+    }
+    return Promise.all(ret);
+  }
+
+  // Simpler concurrency implementation
+  async function processWithConcurrency(items, limit, fn) {
+    const results = [];
+    let i = 0;
+    const workers = new Array(Math.min(limit, items.length)).fill(0).map(async () => {
+      while (i < items.length) {
+        const idx = i;
+        i += 1;
+        try {
+          const res = await fn(items[idx]);
+          results[idx] = res;
+        } catch (err) {
+          results[idx] = { error: String(err) };
+        }
+      }
+    });
+    await Promise.all(workers);
+    return results;
+  }
+
+  // Fetching logic (ASU-TSV)
+  async function fetchVizierForBib(bib) {
+    const result = { catalogs: [], fetchedAt: new Date().toISOString() };
+    try {
+      const url = `https://vizier.u-strasbg.fr/viz-bin/asu-tsv?-ref=${encodeURIComponent(bib)}&-out.max=200`;
+      const res = await fetch(url, { method: "GET" });
+      if (!res.ok) {
+        const txt = await res.text();
+        result.error = `vizier: ${res.status} ${txt.slice(0, 200)}`;
+        return result;
+      }
+      const text = await res.text();
+      const matches = Array.from(text.matchAll(/(?:\?|&)-source=([^&\s'\"]+)/g));
+      let catalogs = Array.from(new Set(matches.map((m) => decodeURIComponent(m[1])))).filter(Boolean);
+
+      // Heuristic fallback: try to derive J/Journal/Volume/Page
+      if (catalogs.length === 0) {
+        const m = String(bib).match(/^(?:\d{4})([A-Za-z]{1,6})\.+(\d+)\.+(\d+)/);
+        if (m) {
+          const journal = m[1];
+          const volume = m[2];
+          const page = m[3];
+          const guess = `J/${journal}/${volume}/${page}`;
+          try {
+            const r2 = await fetch(
+              `https://vizier.u-strasbg.fr/viz-bin/asu-tsv?-source=${encodeURIComponent(guess)}&-out.max=200`,
+            );
+            if (r2.ok) {
+              const txt2 = await r2.text();
+              const names = Array.from(txt2.matchAll(/#Name:\s*([^\n\r]+)/g)).map((x) => x[1].trim());
+              const found = names.filter((n) => n.startsWith(guess));
+              if (found.length) catalogs = Array.from(new Set(found));
+            }
+          } catch (err) {
+            // ignore
+          }
+        }
+      }
+
+      result.catalogs = catalogs;
+      return result;
+    } catch (err) {
+      result.error = String(err);
+      return result;
+    }
+  }
+
+  if (missing.length > 0) {
+    // Throttle: do a few concurrent fetches to avoid overwhelming Vizier
+    const concurrency = 4;
+    console.log(`Fetching missing bibcodes with concurrency=${concurrency} ...`);
+    const results = await processWithConcurrency(missing, concurrency, fetchVizierForBib);
+    for (let k = 0; k < missing.length; k += 1) {
+      const bib = missing[k];
+      cache[bib] = results[k] || { catalogs: [], fetchedAt: new Date().toISOString(), error: "unknown" };
+      console.log(`Fetched ${bib}: ${cache[bib].catalogs.length} catalogs${cache[bib].error ? ' (error)' : ''}`);
+    }
+
+    // Write cache files
+    await fs.writeFile(vizierCacheJson, JSON.stringify(cache, null, 2), "utf8");
+    const tsPieces = [];
+    tsPieces.push("// THIS FILE IS AUTO-GENERATED. DO NOT EDIT BY HAND.");
+    tsPieces.push("// Generated by scripts/generate-datasets.mjs");
+    tsPieces.push("\nexport const vizierCatalogs = ");
+    tsPieces.push(JSON.stringify(cache, null, 2) + " as const;\n");
+    await fs.writeFile(vizierCacheTs, tsPieces.join("\n"), "utf8");
+    console.log(`Wrote Vizier cache: ${path.relative(process.cwd(), vizierCacheJson)}`);
+    console.log(`Wrote Vizier TS wrapper: ${path.relative(process.cwd(), vizierCacheTs)}`);
+  } else {
+    console.log("No new bibcodes to fetch; cache is up-to-date.");
+  }
 }
 
 main().catch((err) => {

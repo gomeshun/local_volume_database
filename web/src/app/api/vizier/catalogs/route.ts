@@ -13,6 +13,9 @@ export const revalidate = 60; // seconds
 export async function GET(_req: NextRequest) {
   return NextResponse.json({ error: "disabled; query Vizier directly from client" }, { status: 501 });
 
+  // Define a dummy bibcode to keep the unused proxy code type-checking (code is unreachable).
+  const bibcode = "";
+
   try {
     // Query the VizieR ASU-TSV endpoint by reference (bibcode).
     // We ask for a reasonable max number of results.
