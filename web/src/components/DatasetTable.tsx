@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment, type ReactNode } from "react";
 import {
   type ColumnDef,
   type SortingState,
@@ -239,6 +239,142 @@ export function DatasetTable({
     },
   });
 
+  // Component to fetch VizieR catalogs for a given bibcode (server-proxied).
+  function RefRow({ colId, raw }: { colId: string; raw: string }) {
+    const bibcode = bibcodeFromRefValue(raw);
+    const [state, setState] = useState<
+      | { status: "idle" }
+      | { status: "loading" }
+      | { status: "ok"; catalogs: string[] }
+      | { status: "none" }
+      | { status: "error"; error: string }
+    >({ status: "idle" });
+
+    useEffect(() => {
+      if (!bibcode) return;
+      let cancelled = false;
+      setState({ status: "loading" });
+      (async () => {
+        try {
+          // Directly query Vizier ASU-TSV endpoint (CORS is allowed by Vizier)
+          const url = `https://vizier.u-strasbg.fr/viz-bin/asu-tsv?-ref=${encodeURIComponent(bibcode)}&-out.max=200`;
+          const res = await fetch(url);
+          if (!res.ok) {
+            const txt = await res.text();
+            if (!cancelled) setState({ status: "error", error: `vizier: ${res.status} ${txt}` });
+            return;
+          }
+
+          const text = await res.text();
+          // Extract catalog identifiers from any ?-source=CAT entries in the response.
+          const matches = Array.from(text.matchAll(/(?:\?|&)-source=([^&\s'"]+)/g));
+          let catalogs = Array.from(new Set(matches.map((m) => decodeURIComponent(m[1])))).filter(Boolean);
+
+          // If no catalogs found, try a heuristic: derive a Vizier source id from the bibcode
+          // e.g. 2009AJ....137.3100W -> J/AJ/137/3100
+          if (catalogs.length === 0 && bibcode) {
+            // Older bibcodes use runs of dots as separators (e.g. 2011ApJ...733...46S).
+            // Use a more flexible regex that accepts one-or-more dots between components.
+            const m = String(bibcode).match(/^(?:\d{4})([A-Za-z]{1,6})\.+(\d+)\.+(\d+)/);
+            if (m) {
+              const journal = m[1];
+              const volume = m[2];
+              const page = m[3];
+              const guess = `J/${journal}/${volume}/${page}`;
+              try {
+                const r2 = await fetch(
+                  `https://vizier.u-strasbg.fr/viz-bin/asu-tsv?-source=${encodeURIComponent(guess)}&-out.max=200`,
+                );
+                if (r2.ok) {
+                  const txt2 = await r2.text();
+                  // Extract #Name: lines (table identifiers)
+                  const names = Array.from(txt2.matchAll(/#Name:\s*([^\n\r]+)/g)).map((x) => x[1].trim());
+                  // Keep entries that look like table names (contain the guess or are subnames)
+                  const found = names.filter((n) => n.startsWith(guess));
+                  if (found.length) {
+                    catalogs = Array.from(new Set(found));
+                  }
+                }
+              } catch (err) {
+                // ignore; keep catalogs empty
+              }
+            }
+          }
+
+          if (!cancelled) {
+            if (catalogs.length) setState({ status: "ok", catalogs });
+            else setState({ status: "none" });
+          }
+        } catch (err) {
+          if (!cancelled) setState({ status: "error", error: String(err) });
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [bibcode]);
+
+    const bibcodeStr = bibcode ?? null;
+
+    const adsNode: ReactNode = raw ? (
+      bibcodeStr ? (
+        <a
+          href={`https://ui.adsabs.harvard.edu/abs/${encodeURIComponent(bibcodeStr)}/abstract`}
+          target="_blank"
+          rel="noreferrer"
+          className="underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {raw}
+        </a>
+      ) : (
+        raw
+      )
+    ) : (
+      <span className="text-muted-foreground">—</span>
+    );
+
+    let vizierCell: ReactNode = <span className="text-muted-foreground">—</span>;
+    if (!bibcodeStr) {
+      vizierCell = (
+        <span className="text-sm text-muted-foreground">No bibcode</span>
+      );
+    } else {
+      if (state.status === "loading") vizierCell = <span className="text-sm">Checking…</span>;
+      else if (state.status === "error") vizierCell = <span className="text-sm text-red-600">Error</span>;
+      else if (state.status === "none") vizierCell = <span className="text-sm text-muted-foreground">No catalogs</span>;
+      else if (state.status === "ok") {
+        vizierCell = (
+          <div className="flex flex-col gap-1">
+            {state.catalogs.slice(0, 10).map((cat) => (
+              <a
+                key={cat}
+                href={`https://vizier.u-strasbg.fr/viz-bin/VizieR?-source=${encodeURIComponent(cat)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="underline text-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {cat}
+              </a>
+            ))}
+            {state.catalogs.length > 10 ? (
+              <div className="text-sm text-muted-foreground">and {state.catalogs.length - 10} more...</div>
+            ) : null}
+          </div>
+        );
+      }
+    }
+
+    return (
+      <tr key={colId} className="border-b align-top">
+        <td className="p-2 font-mono text-muted-foreground w-40">{colId}</td>
+        <td className="p-2">{adsNode}</td>
+        <td className="p-2">{vizierCell}</td>
+      </tr>
+    );
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -343,26 +479,59 @@ export function DatasetTable({
               const rowId = tr.original.rowId;
               const isSelected = selectedId != null && rowId === selectedId;
               return (
-                <TableRow
-                  key={tr.id}
-                  data-state={isSelected ? "selected" : undefined}
-                  className="cursor-pointer"
-                  onClick={() => onToggleSelect(tr.original.row, rowId)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onToggleSelect(tr.original.row, rowId);
-                    }
-                  }}
-                >
-                  {tr.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="whitespace-nowrap">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <Fragment key={tr.id}>
+                  <TableRow
+                    data-state={isSelected ? "selected" : undefined}
+                    className="cursor-pointer"
+                    onClick={() => onToggleSelect(tr.original.row, rowId)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onToggleSelect(tr.original.row, rowId);
+                      }
+                    }}
+                  >
+                    {tr.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="whitespace-nowrap">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+
+                  {isSelected ? (
+                    <TableRow className="bg-muted/5">
+                      <TableCell colSpan={tr.getVisibleCells().length} className="p-3">
+                        <div className="overflow-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr>
+                                <th className="p-2 w-40 text-left font-medium"> </th>
+                                <th className="p-2 text-left font-medium">ADS</th>
+                                <th className="p-2 text-left font-medium">Vizier</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {orderedColumns
+                                .filter((c) => isRefColumn(c))
+                                .map((colId) => {
+                                  const raw = String(tr.original.row[colId] ?? "");
+                                  return <RefRow key={colId} colId={colId} raw={raw} />;
+                                })}
+
+                              {orderedColumns.filter((c) => isRefColumn(c)).length === 0 ? (
+                                <tr>
+                                  <td colSpan={3} className="p-2 text-sm text-muted-foreground">No references</td>
+                                </tr>
+                              ) : null}
+                            </tbody>
+                          </table>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </Fragment>
               );
             })}
           </TableBody>
