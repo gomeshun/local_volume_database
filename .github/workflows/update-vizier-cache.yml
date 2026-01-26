@@ -29,7 +29,10 @@ jobs:
 
       - name: Install dependencies (web)
         working-directory: web
-        run: npm ci
+        # run: npm ci
+        run: |
+          cd web
+          npm install
 
       - name: Generate datasets and Vizier cache
         working-directory: web
