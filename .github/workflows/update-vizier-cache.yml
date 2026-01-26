@@ -26,13 +26,14 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies (web)
         working-directory: web
         run: npm ci
         # run: |
         #   cd web
-        #   npm install
+        #   npm ci
 
       - name: Generate datasets and Vizier cache
         working-directory: web
