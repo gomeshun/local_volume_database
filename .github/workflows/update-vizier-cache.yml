@@ -1,7 +1,16 @@
 name: Update Vizier cache
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Re-fetch all SIMBAD entries (sets FORCE_SIMBAD=1)'
+        required: false
+        default: 'false'
+      retry_bad:
+        description: 'Retry previously fetched entries missing results (sets RETRY_BAD=1)'
+        required: false
+        default: 'false'
 
 concurrency:
   group: update-vizier-cache
@@ -32,8 +41,17 @@ jobs:
         #   cd web
         #   npm ci
 
+      - name: Show selected inputs
+        run: |
+          echo "Inputs: force=${{ inputs.force }} retry_bad=${{ inputs.retry_bad }}"
+          if [ "${{ inputs.force }}" = 'true' ]; then echo "FORCE_SIMBAD=1"; else echo "FORCE_SIMBAD=0"; fi
+          if [ "${{ inputs.retry_bad }}" = 'true' ]; then echo "RETRY_BAD=1"; else echo "RETRY_BAD=0"; fi
+
       - name: Generate datasets and Vizier cache
         working-directory: web
+        env:
+          FORCE_SIMBAD: ${{ inputs.force == 'true' && '1' || '0' }}
+          RETRY_BAD: ${{ inputs.retry_bad == 'true' && '1' || '0' }}
         run: npm run prepare:data
 
       - name: Commit and push updated cache (if any)

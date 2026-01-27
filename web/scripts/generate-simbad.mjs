@@ -181,9 +181,13 @@ async function main() {
   const outJson = path.resolve(generatedDir, "simbad_mappings.json");
   const outTs = path.resolve(generatedDir, "simbad_mappings.ts");
 
-  // Support a --force flag to re-fetch all entries regardless of cache
+  // Support flags:
+  // - `--force` to re-fetch all entries regardless of cache
+  // - `--retry-bad` to re-fetch previously fetched entries that lacked successful results
   const force = process.argv.includes("--force") || process.env.FORCE_SIMBAD === "1";
+  const retryBad = process.argv.includes("--retry-bad") || process.env.RETRY_BAD === "1";
   if (force) console.log("Force mode: will re-fetch all SIMBAD entries");
+  if (retryBad) console.log("Retry-bad mode: will re-fetch previously fetched entries missing successful results");
 
   // Load existing cache
   let cache = {};
@@ -229,8 +233,14 @@ async function main() {
       const name = (row.name ?? "").trim() || (row.key ?? "").trim();
       if (!name) continue;
       if (!cache[slug]) cache[slug] = {};
-      // Skip if we've already fetched this row and it has a 'matched' attribute (true or false)
-      if (!force && cache[slug][rowId] && cache[slug][rowId].fetchedAt && Object.prototype.hasOwnProperty.call(cache[slug][rowId], "matched")) continue;
+      // Skip behavior:
+      // - By default: skip any entry that already has `fetchedAt`.
+      // - `--retry-bad`: re-fetch previously fetched entries that are missing a `matched` result.
+      if (!force && cache[slug][rowId] && cache[slug][rowId].fetchedAt) {
+        if (!retryBad) continue;
+        // If retryBad is set, only re-fetch entries that don't have a `matched` attribute
+        if (Object.prototype.hasOwnProperty.call(cache[slug][rowId], "matched")) continue;
+      }
       // If another table already has a result for this same rowId (has 'matched' attribute), reuse it
       if (!force && previousByRowId[rowId] && Object.prototype.hasOwnProperty.call(previousByRowId[rowId], "matched")) {
         cache[slug][rowId] = JSON.parse(JSON.stringify(previousByRowId[rowId]));

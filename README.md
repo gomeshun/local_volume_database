@@ -35,6 +35,19 @@ Run from `web/`:
     npm install
     npm run dev
 
+### Data generation & SIMBAD mappings 🔧
+
+- The `web/` package provides a helper script to prepare generated datasets:
+
+    npm run prepare:data  # runs `node scripts/generate-datasets.mjs && node scripts/generate-simbad.mjs`
+
+- `scripts/generate-simbad.mjs` behavior:
+  - Default: entries that already have `fetchedAt` in the cache are skipped (avoids re-querying SIMBAD).
+  - `--force` (or `FORCE_SIMBAD=1`) re-fetches all entries regardless of cache.
+  - `--retry-bad` (or `RETRY_BAD=1`) re-fetches previously fetched entries that lack a successful result (i.e. missing a `matched` attribute).
+
+- The GitHub Actions workflow `.github/workflows/update-vizier-cache.yml` exposes manual dispatch inputs `force` and `retry_bad` that map to `FORCE_SIMBAD`/`RETRY_BAD` environment variables for the run.
+
 ### GitHub Pages deploy
 
 Pushing to `main` triggers a GitHub Actions workflow that builds a static export and deploys it to Pages: `.github/workflows/deploy.yml`.
