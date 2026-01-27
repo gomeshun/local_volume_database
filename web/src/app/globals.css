@@ -89,4 +89,11 @@
   a:focus-visible {
     @apply rounded-md outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
+
+  /* When Aladin Lite enters fullscreen we hide the site header to avoid
+     it overlapping the fullscreen viewer. Components may also listen to
+     the "aladin-fullscreen-changed" event to hide other UI if needed. */
+  body.aladin-fullscreen header {
+    display: none !important;
+  }
 }

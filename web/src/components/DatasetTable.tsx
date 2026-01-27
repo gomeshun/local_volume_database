@@ -124,6 +124,22 @@ export function DatasetTable({
 }) {
   const [query, setQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
+  // Whether Aladin is currently in fullscreen. Updated via a global event dispatched
+  // by the Aladin viewer so we can hide sticky headers that would otherwise overlay.
+  const [aladinFullscreen, setAladinFullscreen] = useState(false);
+
+  useEffect(() => {
+    // Initialize from the body class (safe in client) and listen for changes.
+    const initial = typeof window !== 'undefined' && document.body.classList.contains('aladin-fullscreen');
+    setAladinFullscreen(Boolean(initial));
+    const handler = (evt: Event) => {
+      const ce = evt as CustomEvent<{ isFullscreen: boolean }>;
+      setAladinFullscreen(Boolean(ce?.detail?.isFullscreen));
+    };
+    window.addEventListener('aladin-fullscreen-changed', handler as EventListener);
+    return () => window.removeEventListener('aladin-fullscreen-changed', handler as EventListener);
+  }, []);
+
   const orderedColumns = useMemo(() => {
     const preferredOrder = ["name", "ra", "dec", "distance", "key"];
     const preferred = preferredOrder.filter((c) => columns.includes(c));
@@ -494,22 +510,24 @@ export function DatasetTable({
 
       <div className="mt-3 overflow-hidden rounded-lg border">
         <Table wrapperClassName="max-h-[calc(100vh-320px)]">
-          <TableHeader>
-            {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
-                {hg.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="sticky top-0 z-[1] whitespace-nowrap bg-background/80 backdrop-blur"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
+          {!aladinFullscreen && (
+            <TableHeader>
+              {table.getHeaderGroups().map((hg) => (
+                <TableRow key={hg.id}>
+                  {hg.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="sticky top-0 z-[1] whitespace-nowrap bg-background/80 backdrop-blur"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+          )}
           <TableBody>
             {table.getRowModel().rows.map((tr) => {
               const rowId = tr.original.rowId;

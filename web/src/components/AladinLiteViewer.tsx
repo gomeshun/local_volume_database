@@ -107,6 +107,58 @@ export function AladinLiteViewer({
     };
   }, [initialTarget, loaded]);
 
+  // Track whether Aladin is currently in fullscreen and toggle a body-level
+  // CSS class + dispatch an event so other components can react. Use the
+  // official Aladin "AL:fullscreen.toggled" event (no polling fallback).
+  useEffect(() => {
+    if (!loaded || !viewerReady || !aladinRef.current) {
+      // Ensure any leftover class is removed if viewer is not ready.
+      if (typeof document !== "undefined" && document.body.classList.contains("aladin-fullscreen")) {
+        document.body.classList.remove("aladin-fullscreen");
+        window.dispatchEvent(new CustomEvent("aladin-fullscreen-changed", { detail: { isFullscreen: false } }));
+      }
+      return;
+    }
+
+    const al = aladinRef.current;
+    const setState = (isFullscreen: boolean) => {
+      try {
+        if (isFullscreen) document.body.classList.add("aladin-fullscreen");
+        else document.body.classList.remove("aladin-fullscreen");
+        window.dispatchEvent(new CustomEvent("aladin-fullscreen-changed", { detail: { isFullscreen } }));
+      } catch {
+        // ignore
+      }
+    };
+
+    // initialize
+    setState(Boolean(al?.isInFullscreen));
+
+    const handler = (evt: Event) => {
+      try {
+        const ce = evt as CustomEvent<{ fullscreen: boolean }>;
+        setState(Boolean(ce?.detail?.fullscreen));
+      } catch {
+        // ignore
+      }
+    };
+
+    // Attach official event on the Aladin DOM node
+    if (al?.aladinDiv && typeof al.aladinDiv.addEventListener === "function") {
+      al.aladinDiv.addEventListener("AL:fullscreen.toggled", handler as EventListener);
+    }
+
+    return () => {
+      if (al?.aladinDiv && typeof al.aladinDiv.removeEventListener === "function") {
+        al.aladinDiv.removeEventListener("AL:fullscreen.toggled", handler as EventListener);
+      }
+      if (typeof document !== "undefined") {
+        document.body.classList.remove("aladin-fullscreen");
+      }
+      window.dispatchEvent(new CustomEvent("aladin-fullscreen-changed", { detail: { isFullscreen: false } }));
+    };
+  }, [loaded, viewerReady]);
+
   useEffect(() => {
     if (!loaded) return;
     if (!viewerReady) return;
