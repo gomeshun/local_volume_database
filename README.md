@@ -52,6 +52,11 @@ Run from `web/`:
 
 Pushing to `main` triggers a GitHub Actions workflow that builds a static export and deploys it to Pages: `.github/workflows/deploy.yml`.
 
+
+## Original README.md content below
+
+---
+
 ### DESCRIPTION:
 
 The LVDB is a database of dwarf galaxies and star clusters in the Local Volume. The database is complete for dwarf galaxies within ~5 Mpc. 
