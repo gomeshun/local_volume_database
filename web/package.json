@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prepare:data": "node scripts/generate-datasets.mjs",
+    "prepare:data": "node scripts/generate-datasets.mjs && node scripts/generate-simbad.mjs",
     "predev": "npm run prepare:data",
     "dev": "next dev",
     "prebuild": "npm run prepare:data",

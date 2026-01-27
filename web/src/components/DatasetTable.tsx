@@ -15,6 +15,7 @@ import {
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { vizierCatalogs } from "@/generated/vizier_catalogs";
+import { simbadMappings } from "@/generated/simbad_mappings";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -113,11 +114,13 @@ export function DatasetTable({
   rows,
   selectedId,
   onToggleSelect,
+  datasetSlug,
 }: {
   columns: string[];
   rows: Row[];
   selectedId: string | null;
   onToggleSelect: (row: Row, rowId: string) => void;
+  datasetSlug?: string;
 }) {
   const [query, setQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -184,6 +187,72 @@ export function DatasetTable({
       cell: (info) => {
         const raw = String(info.getValue() ?? "");
         if (!raw) return "";
+
+        // Name cell: render hyperlink to SIMBAD only if a reliable mapping (mainId + matched) exists
+        if (c === "name") {
+          const rowId = (info.row.original as RowData).rowId;
+          const slug = datasetSlug ?? null;
+          const entry = slug ? (simbadMappings as Record<string, any>)[slug]?.[rowId] ?? null : null;
+
+          const suffix = slug ? (slug.startsWith("dwarf") ? "dsph" : slug.startsWith("gc") ? "GC" : null) : null;
+
+          // Link name iff matched succeeded. For non-matched but having a SIMBAD id
+          // we link the warning icon instead. If no data, show no trailing badge.
+          const hasMainId = Boolean(entry?.mainId);
+          const isLinkable = Boolean(hasMainId && entry?.matched === true);
+          const simbadHref = hasMainId
+            ? `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(entry.mainId)}&NbIdent=1`
+            : null;
+
+          // Format separation for tooltips
+          const sep = entry && entry.separation_arcsec != null ? Number(entry.separation_arcsec) : null;
+          const sepStr = sep !== null && Number.isFinite(sep) ? `${sep.toFixed(2)}″` : "unknown";
+
+          const badge = entry ? (
+            entry.error ? (
+              <span title={String(entry.error)} className="ml-2 text-sm text-red-600">✗</span>
+            ) : entry.matched ? (
+              // Matched: we do NOT show a checkmark badge per UX request
+              null
+            ) : entry.empty ? (
+              // No results: do not show a placeholder
+              null
+            ) : entry.mainId ? (
+              // Has a SIMBAD id but did not match: show a warning icon that links to SIMBAD
+              <a
+                href={simbadHref!}
+                title={`SIMBAD — ${entry.mainId} (sep: ${sepStr}) — coordinate mismatch`}
+                target="_blank"
+                rel="noreferrer"
+                className="ml-2 text-sm text-orange-600"
+                onClick={(e) => e.stopPropagation()}
+              >
+                ⚠
+              </a>
+            ) : null
+          ) : null;
+
+          return (
+            <div className="flex items-baseline gap-2">
+              {isLinkable ? (
+                <a
+                  href={simbadHref!}
+                  title={`SIMBAD — ${entry.mainId} (sep: ${sepStr})`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {raw}
+                </a>
+              ) : (
+                <span>{raw}</span>
+              )}
+
+              {badge}
+            </div>
+          );
+        }
 
         if (isRefColumn(c)) {
           const bibcode = bibcodeFromRefValue(raw);

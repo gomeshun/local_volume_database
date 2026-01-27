@@ -85,6 +85,7 @@ export default function DatasetClient({ dataset }: { dataset: Dataset }) {
             rows={dataset.rows}
             selectedId={selection?.id ?? null}
             onToggleSelect={toggleSelectionByRow}
+            datasetSlug={dataset.slug}
           />
         </div>
         <Card className="min-w-0">
