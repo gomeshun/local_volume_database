@@ -332,7 +332,7 @@ export function DatasetTable({
                     // state before any synchronous success/error handlers run.
                     const evtDetail = {
                       url,
-                      options: { sourceSize: 10, color: "#4f46e5" },
+                      options: { sourceSize: 10, color: "#4f46e5", onClick: "showTable" },
                       name: `children:${ident}`,
                       identifier: ident,
                       rowId,

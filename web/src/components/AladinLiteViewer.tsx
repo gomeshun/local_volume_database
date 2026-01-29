@@ -76,7 +76,7 @@ export function AladinLiteViewer({
           showReticle: true,
         });
 
-        catalogRef.current = A.catalog({ name: "LVDB", sourceSize: 8, color: "#ff3b30" });
+        catalogRef.current = A.catalog({ name: "LVDB", sourceSize: 8, color: "#ff3b30", onClick: "showTable" });
         aladinRef.current.addCatalog(catalogRef.current);
 
         aladinRef.current.on("objectClicked", (obj: any) => {
