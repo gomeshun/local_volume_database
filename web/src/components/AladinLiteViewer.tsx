@@ -182,6 +182,68 @@ export function AladinLiteViewer({
     catalogRef.current.addSources(srcs);
   }, [loaded, viewerReady, sources, sourcesKey]);
 
+  // Listen for other parts of the app requesting that we add a catalog from a URL
+  useEffect(() => {
+    if (!loaded) return;
+    if (!viewerReady) return;
+    if (!window.A) return;
+
+    const handler = (evt: Event) => {
+      try {
+        const ce = evt as CustomEvent<{ url: string; options?: any; name?: string; identifier?: string; rowId?: string }>;
+        const url = ce?.detail?.url;
+        if (!url) return;
+        const A = window.A;
+        const opts = ce?.detail?.options ?? { sourceSize: 12, color: "#f08080" };
+        const name = ce?.detail?.name ?? (ce?.detail?.identifier ? `children:${ce.detail.identifier}` : `simbad-children`);
+        const rowId = ce?.detail?.rowId ?? null;
+        const identifier = ce?.detail?.identifier ?? null;
+
+        const successCallback = () => {
+          console.log(`Catalog from URL loaded in Aladin: ${url}`);
+          try {
+            (window as any).dispatchEvent(
+              new CustomEvent("aladin-add-catalog-success", { detail: { rowId, url, name, identifier } }),
+            );
+          } catch {
+            // ignore
+          }
+        };
+
+        let catalog;
+        try {
+          catalog = A.catalogFromURL(url, opts, successCallback);
+          if (!catalog) {
+            (window as any).dispatchEvent(
+              new CustomEvent("aladin-add-catalog-error", { detail: { rowId, url, name, identifier, error: "Catalog not created" } }),
+            );
+          }
+        } catch (err) {
+          (window as any).dispatchEvent(
+            new CustomEvent("aladin-add-catalog-error", { detail: { rowId, url, name, identifier, error: String(err) } }),
+          );
+          throw err;
+        }
+
+        try {
+          if (catalog && name) catalog.name = name;
+        } catch {
+          // ignore if catalog is not mutable
+        }
+
+        if (aladinRef.current && typeof aladinRef.current.addCatalog === "function") {
+          aladinRef.current.addCatalog(catalog);
+        }
+      
+      } catch (err) {
+        console.error("aladin-add-catalog handler error", err);
+      }
+    };
+
+    window.addEventListener("aladin-add-catalog", handler as EventListener);
+    return () => window.removeEventListener("aladin-add-catalog", handler as EventListener);
+  }, [loaded, viewerReady]);
+
   useEffect(() => {
     if (!loaded) return;
     if (!viewerReady) return;

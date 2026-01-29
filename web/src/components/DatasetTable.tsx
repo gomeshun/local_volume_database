@@ -12,7 +12,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { vizierCatalogs } from "@/generated/vizier_catalogs";
 import { simbadMappings } from "@/generated/simbad_mappings";
@@ -128,6 +128,10 @@ export function DatasetTable({
   // by the Aladin viewer so we can hide sticky headers that would otherwise overlay.
   const [aladinFullscreen, setAladinFullscreen] = useState(false);
 
+  // Track when a row's "Add children" operation is in progress and any error messages
+  const [addingChildren, setAddingChildren] = useState<Record<string, boolean>>({});
+  const [childrenError, setChildrenError] = useState<Record<string, string | null>>({});
+
   useEffect(() => {
     // Initialize from the body class (safe in client) and listen for changes.
     const initial = typeof window !== 'undefined' && document.body.classList.contains('aladin-fullscreen');
@@ -146,6 +150,42 @@ export function DatasetTable({
     const rest = columns.filter((c) => !preferred.includes(c));
     return [...preferred, ...rest];
   }, [columns]);
+
+  // Listen for Aladin catalog add success/failure events to update loading state
+  useEffect(() => {
+    const onSuccess = (evt: Event) => {
+      try {
+        const ce = evt as CustomEvent<{ rowId?: string }>;
+        const rowId = ce?.detail?.rowId;
+        if (!rowId) return;
+        setAddingChildren((prev) => ({ ...prev, [rowId]: false }));
+        setChildrenError((prev) => ({ ...prev, [rowId]: null }));
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    const onError = (evt: Event) => {
+      try {
+        const ce = evt as CustomEvent<{ rowId?: string; error?: string }>;
+        const rowId = ce?.detail?.rowId;
+        const errMsg = ce?.detail?.error ?? "Unknown error";
+        if (!rowId) return;
+        setAddingChildren((prev) => ({ ...prev, [rowId]: false }));
+        setChildrenError((prev) => ({ ...prev, [rowId]: String(errMsg) }));
+        console.error("Aladin add catalog error", errMsg);
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    window.addEventListener("aladin-add-catalog-success", onSuccess as EventListener);
+    window.addEventListener("aladin-add-catalog-error", onError as EventListener);
+    return () => {
+      window.removeEventListener("aladin-add-catalog-success", onSuccess as EventListener);
+      window.removeEventListener("aladin-add-catalog-error", onError as EventListener);
+    };
+  }, []);
 
   const initialColumnVisibility = useMemo<VisibilityState>(() => {
     const preferredVisible = new Set(["name", "ra", "dec", "distance"]);
@@ -266,6 +306,61 @@ export function DatasetTable({
               )}
 
               {badge}
+
+              {/* Add children button: dispatches a custom event that Aladin viewer listens to */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="ml-2 h-7 px-2 text-xs"
+                disabled={Boolean(addingChildren[rowId])}
+                aria-busy={Boolean(addingChildren[rowId])}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    const ident = entry?.mainId ?? raw;
+                    if (!ident) return;
+                    const url = `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(
+                      ident,
+                    )}&NbIdent=query_hlinks&submit=children&hlinksdisplay=h_all&list.pmsel=on&list.rvsel=on&rvDisplay=V&output.format=votable`;
+
+                    // Mark as loading for this row and clear previous errors
+                    setAddingChildren((prev) => ({ ...prev, [rowId]: true }));
+                    setChildrenError((prev) => ({ ...prev, [rowId]: null }));
+
+                    // Dispatch the event on the next tick so React can render the loading
+                    // state before any synchronous success/error handlers run.
+                    const evtDetail = {
+                      url,
+                      options: { sourceSize: 10, color: "#4f46e5" },
+                      name: `children:${ident}`,
+                      identifier: ident,
+                      rowId,
+                    };
+                    setTimeout(() => {
+                      const evt = new CustomEvent("aladin-add-catalog", { detail: evtDetail });
+                      (window as any).dispatchEvent(evt);
+                    }, 0);
+                  } catch (err) {
+                    console.error(err);
+                    setAddingChildren((prev) => ({ ...prev, [rowId]: false }));
+                    setChildrenError((prev) => ({ ...prev, [rowId]: String(err) }));
+                  }
+                }}
+              >
+                {addingChildren[rowId] ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    <span className="text-xs">loading…</span>
+                  </span>
+                ) : (
+                  "Add children"
+                )}
+              </Button>
+
+              {childrenError[rowId] ? (
+                <span className="ml-2 text-xs text-red-600">{childrenError[rowId]}</span>
+              ) : null}
             </div>
           );
         }
@@ -291,7 +386,7 @@ export function DatasetTable({
         return raw;
       },
     }));
-  }, [orderedColumns]);
+  }, [orderedColumns, addingChildren, childrenError]);
 
   const table = useReactTable({
     data,
