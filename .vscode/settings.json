@@ -8,5 +8,9 @@
     "chat.agent.maxRequests": 250,
     "files.associations": {
         "*.css": "tailwindcss"
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "terminal.integrated.env.linux": {
+        "LVDBDIR": "${workspaceFolder}/"
     }
 }
