@@ -52,6 +52,19 @@ Run from `web/`:
 
 Pushing to `main` triggers a GitHub Actions workflow that builds a static export and deploys it to Pages: `.github/workflows/deploy.yml`.
 
+## Member-star kinematics fetchers
+
+The Python package now includes a small framework for fetching and normalizing per-star kinematics for objects listed in `data/dwarf_mw.csv`. Registered source tables live in `src/local_volume_database/kinematics/registry.py`; outputs are written under `data_kinematics/`. Sources can come from VizieR or trusted direct publisher files such as AAS/IOP machine-readable tables; the normalized output includes `source_provider` so duplicate paper tables from different providers can be compared.
+
+Examples from the repository root:
+
+    .venv/bin/python scripts/fetch_kinematics_data.py manifest
+    .venv/bin/python scripts/fetch_kinematics_data.py list-sources
+    .venv/bin/python scripts/fetch_kinematics_data.py fetch --source ji2021_antlia2 --max-rows 20
+    .venv/bin/python scripts/fetch_kinematics_data.py fetch --provider aas_iop_mrt --output-dir data_kinematics/processed/aas_iop_mrt
+
+The fetcher caches raw provider responses and spaces requests to avoid unnecessary load on remote services.
+
 
 ## Original README.md content below
 

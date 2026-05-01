@@ -25,6 +25,12 @@ data/candidate.csv
 data/misc_host.csv
 data/comb_all.csv
 
+# Downloaded/generated member-star kinematics products
+data_kinematics/raw/
+data_kinematics/processed/
+data_kinematics/manifest/*.csv
+data_kinematics/manifest/*.json
+
 # Distribution / packaging
 .Python
 build/
