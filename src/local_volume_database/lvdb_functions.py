@@ -77,10 +77,14 @@ def add_column(table, yaml_key, yaml_name, **kwargs):
     yaml_name : name in the nested key strucutre in the YAML file
     col_type (optional) : python column type, default is float
     table_yaml_name (optional) : if the table output needs to have the name of the column changed from `yaml_name`
+    unit (optional): astropy unit for new column
     """
     table_yaml_name = kwargs.get('table_yaml_name', yaml_name)
     col_type = kwargs.get('col_type', float)
+    unit = kwargs.get('unit', '')
     table[table_yaml_name] = np.ma.masked_all(len(table), dtype=col_type)
+    if unit !='':
+        table[table_yaml_name].unit = unit
     #np.zeros(len(table), dtype=col_type)
     path = kwargs.get('path', lvdb_path + '/data_input/')
     for i in range(len(table)):
@@ -96,6 +100,7 @@ def add_column(table, yaml_key, yaml_name, **kwargs):
             except yaml.YAMLError as exc:
                 print(exc)
     # return table[table_yaml_name]
+    
                 
 def make_latex_value(value, em, ep, **kwargs):
     ## for rounding when making latex table
@@ -118,7 +123,7 @@ def make_latex_value(value, em, ep, **kwargs):
 
 def add_year(table, **kwargs):
     ## initial version of add_column()
-    table['year'] = np.zeros(len(table), dtype=int)
+    table['year'] = np.ma.masked_all(len(table), dtype=int)
     path = kwargs.get('path', lvdb_path +'data_input/')
     for i in range(len(table)):
         k = table['key'][i]
@@ -212,7 +217,7 @@ def plot_proper_motion_galaxy_3panel(key, pm_overview = pm_data,  add=[], **kwar
         fig, ax = plt.subplots(1,2,figsize=(12,5))
 
     pm_overview2 = pm_overview[pm_overview['key']==key]
-    print("number of measurements and mehtods:",len(pm_overview2), Counter(pm_overview2['method']))
+    print("number of measurements and methods:",len(pm_overview2), Counter(pm_overview2['method']))
     print("reference", "method", 'pmra', 'pmra_em', 'pmra_ep', 'pmdec', 'pmdec_em', 'pmdec_ep')
     print_pm = kwargs.get('print_pm',True)
     if print_pm:
@@ -301,7 +306,7 @@ def compute_mass_error(rhalf, rhalf_em, rhalf_ep, ellipticity, ellipticity_em, e
         np.random.seed(seed) ## so each monte carlo is the same if nothing is changed
 
     # np.random.seed(1988) ## so each monte carlo is the same if nothing is changed
-    if ma.is_masked(sigma)==True:
+    if ma.is_masked(sigma)==True or ma.is_masked(rhalf)==True:
         return [np.ma.masked,np.ma.masked,np.ma.masked]
     elif (ma.is_masked(sigma_em)==True or ma.is_masked(sigma_ep)==True) and ma.is_masked(sigma)==False:
         rh = distance*rhalf/180./60.*1000.*np.pi
@@ -425,3 +430,85 @@ def add_timescales(table_input):
     table_input['time_relax_dynamical_errani'] = np.sqrt(2./3./np.pi/4.493e-6) * (10**table_input['mass_dynamical_wolf'] * table_input['rhalf_sph_physical']/1000.)**1.5 * table_input['number_stellar']**(-1) * (average_mass_of_star)**(-2) * (8.2 - 1.9 )**(-1)
 
     return table_input
+
+def plot_property_collection(key, property_to_examine, collected_data = pm_data,  add=[], **kwargs):
+    """
+    This is a generic version of `plot_proper_motion_galaxy_3panel` that compares collections of individual measurements. The main collections of the LVDB are proper motion measurements and J-factors. 
+    input:
+    key                     LVDB key for system
+    property_to_examine     property to compare (e.g., pmra)
+    collected_data          structure with data collection
+    add                     "new" measurement to compare to the collection, not implemented yet
+    """
+    collected_data_key = collected_data[collected_data['key']==key]
+    name_option = kwargs.get('name_option', 'ref_cite')
+    notes = kwargs.get('notes', 'comments')
+    
+    ul_option = kwargs.get('ul_option', False)
+    save_file_name = kwargs.get('save_file_name', '')
+    
+    print(key, len(collected_data_key), property_to_examine)
+    print("number of measurements and methods:",len(collected_data_key), )
+    print("reference", "method", 'pmra', 'pmra_em', 'pmra_ep', 'pmdec', 'pmdec_em', 'pmdec_ep')
+    
+    print_measurements = kwargs.get('print_measurements',True)
+    if print_measurements:
+        for kk in range(len(collected_data_key)):
+            if ul_option == False:
+                print(collected_data_key[name_option][kk], collected_data_key['method'][kk], collected_data_key[property_to_examine][kk], collected_data_key[property_to_examine+'_em'][kk],collected_data_key[property_to_examine+'_ep'][kk],collected_data_key[notes][kk], )
+            else:
+                print(collected_data_key[name_option][kk], collected_data_key['method'][kk], collected_data_key[property_to_examine][kk], collected_data_key[property_to_examine+'_em'][kk],collected_data_key[property_to_examine+'_ep'][kk],collected_data_key[property_to_examine+'_ul'][kk],collected_data_key[notes][kk], )
+    
+    keep = np.zeros(len(collected_data_key), dtype=bool)
+    exclude = kwargs.get('exclude', [])
+    for i in range(len(collected_data_key)):
+        if collected_data_key[name_option][i] in exclude:
+            keep[i]=False
+        else:
+            keep[i]=True
+    print("excluded measurements:",len(collected_data_key)-np.sum(keep), len(exclude))
+    collected_data_key = collected_data_key[keep]
+    
+    for kk in range(len(collected_data_key)):
+        collected_data_key[name_option][kk] = collected_data_key[name_option][kk].replace('&', '\string&')
+    
+    fig, ax = plt.subplots(1,1,figsize=(5,2 + 0.25*len(collected_data_key)))
+    for kk in range(len(collected_data_key)):
+        if np.ma.is_masked(collected_data_key[property_to_examine][kk])==True and ul_option==True:
+            ax.errorbar(collected_data_key[property_to_examine+'_ul'][kk], collected_data_key[name_option][kk], fmt='o', xerr=1, xuplims=True)
+        else:
+            ax.errorbar(collected_data_key[property_to_examine][kk], collected_data_key[name_option][kk], fmt='o', xerr=[[collected_data_key[property_to_examine + '_em'][kk]], [collected_data_key[property_to_examine + '_ep'][kk]]])
+       
+    plt.tight_layout()
+    if len(save_file_name)>0:
+        plt.savefig(save_file_name)
+        
+    plt.show()
+
+def search_lvdb(ra, dec, size=60, print_option=True):
+    """
+    function that searches the LVDB catalog for all sources within a given distance and outputs some quite properties
+    input: 
+    ra, dec = ra, dec to search around
+    size= distance in arcmin to search around, default is 60 arcmin
+    print_option (optional): prints out some quick info
+    output:
+    return systems in the LVDB catalog within radius of size * arcmin
+    """
+    # load LVDB catalog
+    comb_all = table.Table.read(lvdb_path+'/data/comb_all.csv')
+    
+    center = coord.SkyCoord(ra=[ra]*u.deg, dec=[dec]*u.deg)
+    coord_lvdb = coord.SkyCoord(ra=comb_all['ra']*u.deg, dec=comb_all['dec']*u.deg)
+
+    idx_catalog, idx_center, sep2d, dist3d = coord_lvdb.search_around_sky(center, size*u.arcmin)
+    ## make subset table
+    matched_sources = comb_all[idx_center]
+
+    if print_option:
+        print("Number of nearby systems: ", len(matched_sources))
+        print('key, name, host, ra, dec, dist(arcmin)')
+        for i in range(len(matched_sources)):
+            print(matched_sources['key'][i],matched_sources['name'][i],matched_sources['host'][i],matched_sources['ra'][i],matched_sources['dec'][i], round(sep2d[i].arcmin, 3))
+        
+    return matched_sources

@@ -1,18 +1,21 @@
 key: yasone_04
 table: candidate
 location:
-  ra: 265.52019
-  dec: 13.17146
+  ra: 225.68761
+  dec: -0.91947
   ref_location: Untzaga2025arXiv250915345U
 name_discovery:
   confirmed_dwarf: 0
   confirmed_star_cluster: 0
   confirmed_real: 0
+  false_positive: 1
   discovery_year: 2025
   host: mw
-  name: Yasone 1
+  name: Yasone 4
   ref_discovery:
   - Untzaga2025arXiv250915345U
+notes:
+- moved to confirmed false postive after paper withdrawn.
 structure:
   rhalf: 23
   spatial_units: arcsec

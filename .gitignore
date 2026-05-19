@@ -24,6 +24,7 @@ data/*.fits
 data/candidate.csv
 data/misc_host.csv
 data/comb_all.csv
+data/comb_all.ecsv
 
 # Downloaded/generated member-star kinematics products
 data_kinematics/raw/
