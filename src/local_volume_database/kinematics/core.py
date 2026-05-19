@@ -47,6 +47,46 @@ STANDARD_COLUMNS = [
     "original_row_json",
 ]
 
+GAIA_DR3_TAP_URL = "https://gea.esac.esa.int/tap-server/tap/sync"
+GAIA_DR3_SOURCE_REF = "GaiaCollaboration2023A&A...674A...1G"
+GAIA_DR3_SOURCE_NAME = "gaia_dr3_source"
+GAIA_DR3_SOURCE_TABLE = "gaiadr3.gaia_source"
+GAIA_SOURCE_ID_RE = re.compile(r"(?<!\d)(\d{16,20})(?!\d)")
+
+
+@dataclass(frozen=True)
+class GaiaKinematicTarget:
+    """Gaia source attached to one normalized LVDB member-star row.
+
+    Parameters
+    ----------
+    object_key : str
+        LVDB object key associated with the member-star row.
+    object_name : str
+        Human-readable LVDB object name.
+    source_id : str
+        Gaia DR2/EDR3/DR3 source identifier to query in Gaia DR3.
+    seed_source_name : str
+        Normalized source table that supplied the source identifier.
+    seed_source_ref : str
+        Reference for the source table that supplied the source identifier.
+    seed_source_row : str
+        Row number in the source table that supplied the source identifier.
+    seed_membership_probability : str
+        Membership probability from the source row, when available.
+    seed_membership_flag : str
+        Membership flag from the source row, when available.
+    """
+
+    object_key: str
+    object_name: str
+    source_id: str
+    seed_source_name: str = ""
+    seed_source_ref: str = ""
+    seed_source_row: str = ""
+    seed_membership_probability: str = ""
+    seed_membership_flag: str = ""
+
 
 @dataclass(frozen=True)
 class KinematicSource:
@@ -343,6 +383,124 @@ class VizierClient:
         return self.cache_dir / endpoint / f"{stem}__{digest}.{suffix}"
 
 
+class GaiaTapClient:
+    """Cached Gaia Archive TAP client for Gaia DR3 source rows.
+
+    Parameters
+    ----------
+    cache_dir : pathlib.Path
+        Directory where raw TAP VOTable responses are cached.
+    min_interval_s : float, optional
+        Minimum delay between remote TAP requests.
+    user_agent : str, optional
+        User-Agent header sent with remote requests.
+    """
+
+    def __init__(
+        self,
+        cache_dir: Path,
+        min_interval_s: float = 3.2,
+        user_agent: str = "local_volume_database Gaia TAP fetcher",
+    ) -> None:
+        """Initialize the cached Gaia TAP client.
+
+        Parameters
+        ----------
+        cache_dir : pathlib.Path
+            Directory where raw TAP VOTable responses are cached.
+        min_interval_s : float, optional
+            Minimum delay between remote TAP requests.
+        user_agent : str, optional
+            User-Agent header sent with remote requests.
+        """
+        self.cache_dir = Path(cache_dir)
+        self.min_interval_s = min_interval_s
+        self.user_agent = user_agent
+        self._last_request_at = 0.0
+
+    def fetch_source_rows(self, source_ids: Sequence[str], force: bool = False) -> Table:
+        """Fetch Gaia DR3 rows for source identifiers.
+
+        Parameters
+        ----------
+        source_ids : Sequence[str]
+            Gaia source identifiers to query.
+        force : bool, optional
+            Re-download even when a cached response exists.
+
+        Returns
+        -------
+        astropy.table.Table
+            Gaia DR3 rows returned by the TAP service.
+        """
+        normalized_ids = sorted({str(source_id).strip() for source_id in source_ids if str(source_id).strip()})
+        cache_file = self._cache_file(normalized_ids)
+        if cache_file.exists() and not force:
+            payload = cache_file.read_bytes()
+        else:
+            payload = self._download_query(gaia_dr3_source_query(normalized_ids))
+            cache_file.parent.mkdir(parents=True, exist_ok=True)
+            cache_file.write_bytes(payload)
+        return Table.read(BytesIO(payload), format="votable")
+
+    def _download_query(self, query: str) -> bytes:
+        """Post an ADQL query to the Gaia TAP sync endpoint.
+
+        Parameters
+        ----------
+        query : str
+            ADQL query string.
+
+        Returns
+        -------
+        bytes
+            Raw VOTable response payload.
+        """
+        now = time.monotonic()
+        wait_s = self.min_interval_s - (now - self._last_request_at)
+        if wait_s > 0:
+            time.sleep(wait_s)
+
+        body = urllib.parse.urlencode(
+            {
+                "REQUEST": "doQuery",
+                "LANG": "ADQL",
+                "FORMAT": "votable",
+                "QUERY": query,
+            }
+        ).encode("utf-8")
+        request = urllib.request.Request(
+            GAIA_DR3_TAP_URL,
+            data=body,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": self.user_agent,
+            },
+        )
+        with urllib.request.urlopen(request, timeout=120) as response:
+            payload = response.read()
+        self._last_request_at = time.monotonic()
+        return payload
+
+    def _cache_file(self, source_ids: Sequence[str]) -> Path:
+        """Build a cache path for a Gaia DR3 source-id batch.
+
+        Parameters
+        ----------
+        source_ids : Sequence[str]
+            Gaia source identifiers included in the batch.
+
+        Returns
+        -------
+        pathlib.Path
+            Cache file path.
+        """
+        joined_ids = ",".join(source_ids)
+        digest = hashlib.sha1(joined_ids.encode("utf-8")).hexdigest()[:16]
+        first_id = source_ids[0] if source_ids else "empty"
+        return self.cache_dir / "gaia_tap" / f"gaia_dr3_source__{len(source_ids)}__{first_id}__{digest}.vot"
+
+
 def repo_root() -> Path:
     """Return the repository root used by the LVDB package.
 
@@ -503,6 +661,307 @@ def fetch_registered_sources(
         normalized_rows.extend(rows)
 
     write_kinematics_outputs(normalized_rows, output_dir)
+    return normalized_rows
+
+
+def fetch_gaia_dr3_proper_motions(
+    input_csv: Path,
+    cache_dir: Path,
+    output_dir: Path,
+    force: bool = False,
+    batch_size: int = 400,
+    min_interval_s: float = 3.2,
+    merge_combined: bool = True,
+) -> list[dict[str, Any]]:
+    """Fetch Gaia DR3 astrometry for member stars with Gaia source IDs.
+
+    Parameters
+    ----------
+    input_csv : pathlib.Path
+        Existing normalized kinematics CSV used as the source of Gaia IDs.
+    cache_dir : pathlib.Path
+        Directory used for raw Gaia TAP response caching.
+    output_dir : pathlib.Path
+        Directory where normalized CSV products are written.
+    force : bool, optional
+        Re-download raw Gaia TAP payloads even when cached.
+    batch_size : int, optional
+        Number of Gaia source IDs per TAP query.
+    min_interval_s : float, optional
+        Minimum delay between TAP requests.
+    merge_combined : bool, optional
+        Append Gaia rows to the combined kinematics output when ``True``.
+
+    Returns
+    -------
+    list of dict[str, Any]
+        Normalized Gaia DR3 proper-motion rows.
+    """
+    if batch_size <= 0:
+        raise ValueError("batch_size must be positive")
+
+    existing_rows = read_kinematics_csv(input_csv)
+    targets = extract_gaia_targets(existing_rows)
+    gaia_rows_by_id = fetch_gaia_dr3_source_rows(
+        [target.source_id for target in targets],
+        cache_dir=cache_dir,
+        batch_size=batch_size,
+        force=force,
+        min_interval_s=min_interval_s,
+    )
+    gaia_rows = normalize_gaia_dr3_rows(targets, gaia_rows_by_id)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    write_standard_csv(gaia_rows, output_dir / "gaia_dr3_proper_motion.csv")
+
+    if merge_combined:
+        base_rows = [
+            row
+            for row in existing_rows
+            if not (row.get("source_provider") == "gaia_tap" and row.get("source_name") == GAIA_DR3_SOURCE_NAME)
+        ]
+        write_kinematics_outputs([*base_rows, *gaia_rows], output_dir)
+
+    return gaia_rows
+
+
+def read_kinematics_csv(csv_path: Path) -> list[dict[str, str]]:
+    """Read a normalized kinematics CSV file.
+
+    Parameters
+    ----------
+    csv_path : pathlib.Path
+        CSV path to read.
+
+    Returns
+    -------
+    list of dict[str, str]
+        Kinematics rows with string values.
+    """
+    with csv_path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+def extract_gaia_targets(rows: Sequence[Mapping[str, str]]) -> list[GaiaKinematicTarget]:
+    """Extract unique Gaia source targets from normalized kinematics rows.
+
+    Parameters
+    ----------
+    rows : Sequence[Mapping[str, str]]
+        Normalized member-star kinematics rows.
+
+    Returns
+    -------
+    list of GaiaKinematicTarget
+        Unique Gaia source IDs grouped by LVDB object.
+    """
+    targets_by_key: dict[tuple[str, str], GaiaKinematicTarget] = {}
+    for index, row in enumerate(rows):
+        object_key = str(row.get("object_key", "")).strip()
+        if not object_key:
+            continue
+        object_name = str(row.get("object_name", object_key)).strip() or object_key
+        for source_id in gaia_source_ids_from_normalized_row(row):
+            target_key = (object_key, source_id)
+            if target_key in targets_by_key:
+                continue
+            targets_by_key[target_key] = GaiaKinematicTarget(
+                object_key=object_key,
+                object_name=object_name,
+                source_id=source_id,
+                seed_source_name=str(row.get("source_name", "")).strip(),
+                seed_source_ref=str(row.get("source_ref", "")).strip(),
+                seed_source_row=str(row.get("source_row", index)).strip(),
+                seed_membership_probability=str(row.get("membership_probability", "")).strip(),
+                seed_membership_flag=str(row.get("membership_flag", "")).strip(),
+            )
+    return sorted(targets_by_key.values(), key=lambda target: (target.object_key, int(target.source_id)))
+
+
+def gaia_source_ids_from_normalized_row(row: Mapping[str, str]) -> list[str]:
+    """Extract Gaia source identifiers from one normalized row.
+
+    Parameters
+    ----------
+    row : Mapping[str, str]
+        Normalized kinematics row, optionally including ``original_row_json``.
+
+    Returns
+    -------
+    list of str
+        Gaia-like numeric source identifiers in stable discovery order.
+    """
+    candidates: list[str] = []
+    candidates.extend(gaia_source_ids_from_value(row.get("star_id", "")))
+
+    original_row_json = str(row.get("original_row_json", "")).strip()
+    if original_row_json:
+        try:
+            original_row = json.loads(original_row_json)
+        except json.JSONDecodeError:
+            original_row = {}
+        if isinstance(original_row, Mapping):
+            for key, value in original_row.items():
+                normalized_key = re.sub(r"[^a-z0-9]", "", str(key).lower())
+                value_text = str(value)
+                if "gaia" in normalized_key or normalized_key in {"sourceid", "source_id"}:
+                    candidates.extend(gaia_source_ids_from_value(value))
+                elif isinstance(value, str) and "gaia" in value_text.lower():
+                    candidates.extend(gaia_source_ids_from_value(value_text))
+
+    return unique_preserving_order(candidates)
+
+
+def gaia_source_ids_from_value(value: Any) -> list[str]:
+    """Extract Gaia-like numeric source identifiers from a value.
+
+    Parameters
+    ----------
+    value : Any
+        Scalar value or string that may contain a Gaia source identifier.
+
+    Returns
+    -------
+    list of str
+        Numeric identifiers with 16 to 20 digits.
+    """
+    if value is None:
+        return []
+    if isinstance(value, float) and math.isnan(value):
+        return []
+    scalar_value = cast(Any, value)
+    if hasattr(scalar_value, "item"):
+        scalar_value = scalar_value.item()
+    text = str(scalar_value).strip()
+    if not text:
+        return []
+    return GAIA_SOURCE_ID_RE.findall(text)
+
+
+def unique_preserving_order(values: Sequence[str]) -> list[str]:
+    """Deduplicate strings while preserving first-seen order.
+
+    Parameters
+    ----------
+    values : Sequence[str]
+        Input string values.
+
+    Returns
+    -------
+    list of str
+        Deduplicated values.
+    """
+    seen: set[str] = set()
+    output: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        output.append(value)
+    return output
+
+
+def fetch_gaia_dr3_source_rows(
+    source_ids: Sequence[str],
+    cache_dir: Path,
+    batch_size: int = 400,
+    force: bool = False,
+    min_interval_s: float = 3.2,
+) -> dict[str, dict[str, Any]]:
+    """Fetch Gaia DR3 source rows and return them by source ID.
+
+    Parameters
+    ----------
+    source_ids : Sequence[str]
+        Gaia source identifiers to query.
+    cache_dir : pathlib.Path
+        Directory used for raw TAP response caching.
+    batch_size : int, optional
+        Number of source IDs per TAP query.
+    force : bool, optional
+        Re-download raw TAP payloads even when cached.
+    min_interval_s : float, optional
+        Minimum delay between TAP requests.
+
+    Returns
+    -------
+    dict[str, dict[str, Any]]
+        Gaia DR3 rows indexed by source ID.
+    """
+    if batch_size <= 0:
+        raise ValueError("batch_size must be positive")
+    source_id_list = sorted({str(source_id).strip() for source_id in source_ids if str(source_id).strip()}, key=int)
+    client = GaiaTapClient(cache_dir=cache_dir, min_interval_s=min_interval_s)
+    rows_by_id: dict[str, dict[str, Any]] = {}
+    for start in range(0, len(source_id_list), batch_size):
+        batch = source_id_list[start : start + batch_size]
+        if not batch:
+            continue
+        table = client.fetch_source_rows(batch, force=force)
+        for gaia_row in cast(Sequence[Row], table):
+            row_dict = row_to_jsonable_dict(gaia_row)
+            source_id = str(row_dict.get("source_id") or row_dict.get("SOURCE_ID") or "").strip()
+            if source_id:
+                rows_by_id[source_id] = row_dict
+    return rows_by_id
+
+
+def normalize_gaia_dr3_rows(
+    targets: Sequence[GaiaKinematicTarget],
+    gaia_rows_by_id: Mapping[str, Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Normalize Gaia DR3 source rows into the kinematics schema.
+
+    Parameters
+    ----------
+    targets : Sequence[GaiaKinematicTarget]
+        Gaia source IDs grouped by LVDB object.
+    gaia_rows_by_id : Mapping[str, Mapping[str, Any]]
+        Gaia DR3 rows indexed by source ID.
+
+    Returns
+    -------
+    list of dict[str, Any]
+        Normalized proper-motion rows.
+    """
+    normalized_rows: list[dict[str, Any]] = []
+    for index, target in enumerate(targets):
+        gaia_row = gaia_rows_by_id.get(target.source_id)
+        if not gaia_row:
+            continue
+        original_payload = {
+            "gaia_dr3": dict(gaia_row),
+            "seed_source_name": target.seed_source_name,
+            "seed_source_ref": target.seed_source_ref,
+            "seed_source_row": target.seed_source_row,
+        }
+        normalized_rows.append(
+            {
+                "object_key": target.object_key,
+                "object_name": target.object_name,
+                "source_kind": "proper_motion",
+                "source_provider": "gaia_tap",
+                "source_ref": GAIA_DR3_SOURCE_REF,
+                "source_name": GAIA_DR3_SOURCE_NAME,
+                "source_table": GAIA_DR3_SOURCE_TABLE,
+                "source_url": "https://gea.esac.esa.int/archive/",
+                "source_row": index,
+                "star_id": target.source_id,
+                "ra_deg": float_from_mapping(gaia_row, "ra"),
+                "dec_deg": float_from_mapping(gaia_row, "dec"),
+                "vlos_kms": None,
+                "vlos_err_kms": None,
+                "pmra_masyr": float_from_mapping(gaia_row, "pmra"),
+                "pmra_err_masyr": float_from_mapping(gaia_row, "pmra_error"),
+                "pmdec_masyr": float_from_mapping(gaia_row, "pmdec"),
+                "pmdec_err_masyr": float_from_mapping(gaia_row, "pmdec_error"),
+                "membership_probability": string_or_none(target.seed_membership_probability),
+                "membership_flag": string_or_none(target.seed_membership_flag),
+                "feh": None,
+                "feh_err": None,
+                "original_row_json": json.dumps(original_payload, sort_keys=True, ensure_ascii=True),
+            }
+        )
     return normalized_rows
 
 
@@ -960,6 +1419,52 @@ def jsonable_value(value: Any) -> Any:
     return str(value)
 
 
+def float_from_mapping(row: Mapping[str, Any], key: str) -> float | None:
+    """Return a finite float from a mapping value.
+
+    Parameters
+    ----------
+    row : Mapping[str, Any]
+        Mapping containing scalar values.
+    key : str
+        Value key to read.
+
+    Returns
+    -------
+    float or None
+        Finite float value, or ``None`` when unavailable.
+    """
+    value = row.get(key)
+    if value is None:
+        return None
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    if math.isnan(result):
+        return None
+    return result
+
+
+def string_or_none(value: Any) -> str | None:
+    """Return a stripped string or ``None`` for empty values.
+
+    Parameters
+    ----------
+    value : Any
+        Value to stringify.
+
+    Returns
+    -------
+    str or None
+        Stripped string, or ``None`` when empty.
+    """
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
 def csv_value(value: Any) -> str:
     """Convert a normalized value to a CSV field string.
 
@@ -1026,6 +1531,31 @@ def vizier_asu_tsv_url(source_id: str, max_rows: int | None = 10) -> str:
     """
     params = {"-source": source_id, "-out.max": "unlimited" if max_rows is None else str(max_rows)}
     return "https://vizier.cds.unistra.fr/viz-bin/asu-tsv?" + urllib.parse.urlencode(params)
+
+
+def gaia_dr3_source_query(source_ids: Sequence[str]) -> str:
+    """Build an ADQL query for Gaia DR3 astrometry by source ID.
+
+    Parameters
+    ----------
+    source_ids : Sequence[str]
+        Gaia source identifiers.
+
+    Returns
+    -------
+    str
+        ADQL query string for ``gaiadr3.gaia_source``.
+    """
+    if not source_ids:
+        raise ValueError("source_ids must not be empty")
+    id_list = ",".join(str(int(source_id)) for source_id in source_ids)
+    return (
+        "SELECT source_id, ra, dec, parallax, parallax_error, "
+        "pmra, pmra_error, pmdec, pmdec_error, "
+        "phot_g_mean_mag, bp_rp, radial_velocity, radial_velocity_error, ruwe "
+        f"FROM {GAIA_DR3_SOURCE_TABLE} "
+        f"WHERE source_id IN ({id_list})"
+    )
 
 
 def guess_vizier_source_id(bibcode: str) -> str | None:

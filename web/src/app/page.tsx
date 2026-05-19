@@ -8,7 +8,7 @@ export default function Home() {
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold tracking-tight">Datasets</h1>
       <p className="text-sm text-muted-foreground">
-        Initial milestone: show LVDB tables as-is, then visualize with Aladin Lite.
+        LVDB tables, sky positions, and normalized member-star kinematics.
       </p>
       <p className="text-sm text-muted-foreground">
         This is an unofficial fork. See <Link href="/about">About / Credits</Link>.
@@ -33,7 +33,7 @@ export default function Home() {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Note: for now we generate a limited number of rows at build time to keep the initial app light.
+        Member-star pages use normalized kinematics products; raw provider payloads are not bundled in the web app.
       </p>
     </div>
   );

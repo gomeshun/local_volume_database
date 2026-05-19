@@ -52,6 +52,9 @@ export default function RootLayout({
                   <Link href="/" className="text-sm">
                     Datasets
                   </Link>
+                  <Link href="/objects" className="text-sm">
+                    Objects
+                  </Link>
                   <Link href="/about" className="text-sm">
                     About
                   </Link>

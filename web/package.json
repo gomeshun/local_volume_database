@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prepare:data": "node scripts/generate-datasets.mjs && node scripts/generate-simbad.mjs",
+    "prepare:data": "node scripts/generate-datasets.mjs && node scripts/generate-simbad.mjs && node scripts/generate-kinematics.mjs",
     "prepare:data:force": "FORCE_SIMBAD=1 npm run prepare:data",
     "prepare:data:retry-bad": "RETRY_BAD=1 npm run prepare:data",
     "predev": "npm run prepare:data",

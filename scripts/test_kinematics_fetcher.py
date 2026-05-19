@@ -11,10 +11,14 @@ os.environ.setdefault("LVDBDIR", str(ROOT) + "/")
 sys.path.insert(0, str(ROOT / "src"))
 
 from local_volume_database.kinematics import (  # noqa: E402
+    GAIA_DR3_SOURCE_NAME,
+    GaiaKinematicTarget,
     KINEMATIC_SOURCES,
     build_reference_manifest,
+    gaia_source_ids_from_normalized_row,
     guess_vizier_source_id,
     load_dwarf_rows,
+    normalize_gaia_dr3_rows,
     normalize_table,
 )
 
@@ -125,6 +129,65 @@ def test_normalize_aas_iop_like_table() -> None:
     assert rows[0]["vlos_err_kms"] == 2.3
 
 
+def test_extract_gaia_source_ids_from_normalized_row() -> None:
+    """Test Gaia source-id extraction from normalized and raw fields.
+
+    Returns
+    -------
+    None
+        Assertions validate direct and embedded Gaia identifiers.
+    """
+    row = {
+        "star_id": "5430123686295270528",
+        "original_row_json": '{"SimbadName": "Gaia DR2 2908277352901612544", "source_id": 5430123686295270528}',
+    }
+    assert gaia_source_ids_from_normalized_row(row) == [
+        "5430123686295270528",
+        "2908277352901612544",
+    ]
+
+
+def test_normalize_gaia_dr3_rows() -> None:
+    """Test Gaia DR3 rows are normalized as proper-motion rows.
+
+    Returns
+    -------
+    None
+        Assertions validate Gaia metadata and proper-motion columns.
+    """
+    target = GaiaKinematicTarget(
+        object_key="antlia_2",
+        object_name="Antlia II",
+        source_id="5430123686295270528",
+        seed_source_name="ji2021_antlia2",
+        seed_source_ref="Ji2021ApJ...921...32J",
+        seed_source_row="0",
+        seed_membership_probability="1",
+        seed_membership_flag="M",
+    )
+    rows = normalize_gaia_dr3_rows(
+        [target],
+        {
+            "5430123686295270528": {
+                "source_id": 5430123686295270528,
+                "ra": 142.53357,
+                "dec": -37.9144,
+                "pmra": 0.88,
+                "pmra_error": 0.1,
+                "pmdec": 1.683,
+                "pmdec_error": 0.2,
+            }
+        },
+    )
+    assert len(rows) == 1
+    assert rows[0]["source_name"] == GAIA_DR3_SOURCE_NAME
+    assert rows[0]["source_provider"] == "gaia_tap"
+    assert rows[0]["source_kind"] == "proper_motion"
+    assert rows[0]["pmra_masyr"] == 0.88
+    assert rows[0]["pmdec_err_masyr"] == 0.2
+    assert rows[0]["membership_flag"] == "M"
+
+
 if __name__ == "__main__":
     test_guess_vizier_source_id()
     test_reference_manifest_marks_registered_sources()
@@ -132,4 +195,6 @@ if __name__ == "__main__":
     test_normalize_nearest_object_assignment()
     test_direct_provider_source_url()
     test_normalize_aas_iop_like_table()
+    test_extract_gaia_source_ids_from_normalized_row()
+    test_normalize_gaia_dr3_rows()
     print("kinematics fetcher smoke tests passed")

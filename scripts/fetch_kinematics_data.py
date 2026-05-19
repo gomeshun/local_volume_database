@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from local_volume_database.kinematics import (  # noqa: E402
     KINEMATIC_SOURCES,
     build_reference_manifest,
+    fetch_gaia_dr3_proper_motions,
     fetch_registered_sources,
     guess_vizier_source_id,
     load_dwarf_rows,
@@ -52,6 +53,22 @@ def main() -> None:
     fetch_parser.add_argument("--min-interval", type=float, default=3.2, help="Seconds between remote requests.")
     fetch_parser.add_argument("--cache-dir", type=Path, default=ROOT / "data_kinematics" / "raw")
     fetch_parser.add_argument("--output-dir", type=Path, default=ROOT / "data_kinematics" / "processed")
+
+    gaia_parser = subparsers.add_parser(
+        "fetch-gaia",
+        help="Fetch Gaia DR3 proper motions for member stars with Gaia source IDs in the normalized output.",
+    )
+    gaia_parser.add_argument("--input", type=Path, default=ROOT / "data_kinematics" / "processed" / "dwarf_mw_kinematics.csv")
+    gaia_parser.add_argument("--cache-dir", type=Path, default=ROOT / "data_kinematics" / "raw")
+    gaia_parser.add_argument("--output-dir", type=Path, default=ROOT / "data_kinematics" / "processed")
+    gaia_parser.add_argument("--batch-size", type=int, default=400, help="Gaia source IDs per TAP query.")
+    gaia_parser.add_argument("--force", action="store_true", help="Re-download Gaia TAP batches even if cached.")
+    gaia_parser.add_argument("--min-interval", type=float, default=3.2, help="Seconds between Gaia TAP requests.")
+    gaia_parser.add_argument(
+        "--no-merge-combined",
+        action="store_true",
+        help="Write gaia_dr3_proper_motion.csv without appending Gaia rows to dwarf_mw_kinematics.csv.",
+    )
 
     discover_parser = subparsers.add_parser("discover", help="Probe guessed VizieR source IDs for dwarf_mw kinematic refs.")
     discover_parser.add_argument("--ref", action="append", dest="refs", help="Specific bibcode to probe; repeatable.")
@@ -106,6 +123,17 @@ def main() -> None:
             min_interval_s=args.min_interval,
         )
         print(f"wrote {len(rows)} normalized rows under {args.output_dir}")
+    elif args.command == "fetch-gaia":
+        rows = fetch_gaia_dr3_proper_motions(
+            input_csv=args.input,
+            cache_dir=args.cache_dir,
+            output_dir=args.output_dir,
+            batch_size=args.batch_size,
+            force=args.force,
+            min_interval_s=args.min_interval,
+            merge_combined=not args.no_merge_combined,
+        )
+        print(f"wrote {len(rows)} Gaia DR3 proper-motion rows under {args.output_dir}")
     elif args.command == "discover":
         refs = args.refs or sorted(
             {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, Fragment, type ReactNode } from "react";
 import {
   type ColumnDef,
@@ -14,6 +15,7 @@ import {
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { kinematicObjectByKey } from "@/generated/kinematics_summary";
 import { vizierCatalogs } from "@/generated/vizier_catalogs";
 import { simbadMappings } from "@/generated/simbad_mappings";
 import { Input } from "@/components/ui/input";
@@ -256,6 +258,7 @@ export function DatasetTable({
           // we link the warning icon instead. If no data, show no trailing badge.
           const hasMainId = Boolean(entry?.mainId);
           const isLinkable = Boolean(hasMainId && entry?.matched === true);
+          const objectSummary = slug === "dwarf_mw" ? (kinematicObjectByKey as Record<string, any>)[rowId] ?? null : null;
           const simbadHref = hasMainId
             ? `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(entry.mainId)}&NbIdent=1`
             : null;
@@ -306,6 +309,16 @@ export function DatasetTable({
               )}
 
               {badge}
+
+              {objectSummary ? (
+                <Link
+                  href={`/objects/${encodeURIComponent(rowId)}`}
+                  className="ml-1 whitespace-nowrap text-xs"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {Number(objectSummary.totalRows) > 0 ? "Member stars" : "Object"}
+                </Link>
+              ) : null}
 
               {/* Add children button: dispatches a custom event that Aladin viewer listens to */}
               <Button
