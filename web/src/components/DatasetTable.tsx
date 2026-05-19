@@ -36,10 +36,26 @@ import {
 
 type Row = Record<string, string>;
 
+type SimbadEntry = {
+  empty?: boolean;
+  error?: string;
+  mainId?: string | null;
+  matched?: boolean;
+  separation_arcsec?: number | string | null;
+};
+
+type VizierEntry = {
+  catalogs?: readonly string[];
+  error?: string;
+};
+
 type RowData = {
   row: Row;
   rowId: string;
 };
+
+const simbadByDataset = simbadMappings as unknown as Record<string, Record<string, SimbadEntry | undefined>>;
+const vizierByBibcode = vizierCatalogs as unknown as Record<string, VizierEntry | undefined>;
 
 const COLUMN_UNITS: Record<string, string> = {
   ra: "deg",
@@ -160,7 +176,7 @@ export function DatasetTable({
         if (!rowId) return;
         setAddingChildren((prev) => ({ ...prev, [rowId]: false }));
         setChildrenError((prev) => ({ ...prev, [rowId]: null }));
-      } catch (err) {
+      } catch {
         // ignore
       }
     };
@@ -174,7 +190,7 @@ export function DatasetTable({
         setAddingChildren((prev) => ({ ...prev, [rowId]: false }));
         setChildrenError((prev) => ({ ...prev, [rowId]: String(errMsg) }));
         console.error("Aladin add catalog error", errMsg);
-      } catch (err) {
+      } catch {
         // ignore
       }
     };
@@ -248,16 +264,14 @@ export function DatasetTable({
         if (c === "name") {
           const rowId = (info.row.original as RowData).rowId;
           const slug = datasetSlug ?? null;
-          const entry = slug ? (simbadMappings as Record<string, any>)[slug]?.[rowId] ?? null : null;
-
-          const suffix = slug ? (slug.startsWith("dwarf") ? "dsph" : slug.startsWith("gc") ? "GC" : null) : null;
+          const entry = slug ? simbadByDataset[slug]?.[rowId] ?? null : null;
+          const mainId = typeof entry?.mainId === "string" && entry.mainId.length > 0 ? entry.mainId : null;
 
           // Link name iff matched succeeded. For non-matched but having a SIMBAD id
           // we link the warning icon instead. If no data, show no trailing badge.
-          const hasMainId = Boolean(entry?.mainId);
-          const isLinkable = Boolean(hasMainId && entry?.matched === true);
-          const simbadHref = hasMainId
-            ? `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(entry.mainId)}&NbIdent=1`
+          const isLinkable = Boolean(mainId && entry?.matched === true);
+          const simbadHref = mainId
+            ? `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(mainId)}&NbIdent=1`
             : null;
 
           // Format separation for tooltips
@@ -277,7 +291,7 @@ export function DatasetTable({
               // Has a SIMBAD id but did not match: show a warning icon that links to SIMBAD
               <a
                 href={simbadHref!}
-                title={`SIMBAD — ${entry.mainId} (sep: ${sepStr}) — coordinate mismatch`}
+                title={`SIMBAD — ${mainId} (sep: ${sepStr}) — coordinate mismatch`}
                 target="_blank"
                 rel="noreferrer"
                 className="ml-2 text-sm text-orange-600"
@@ -293,7 +307,7 @@ export function DatasetTable({
               {isLinkable ? (
                 <a
                   href={simbadHref!}
-                  title={`SIMBAD — ${entry.mainId} (sep: ${sepStr})`}
+                  title={`SIMBAD — ${mainId} (sep: ${sepStr})`}
                   target="_blank"
                   rel="noreferrer"
                   className="underline underline-offset-4"
@@ -339,7 +353,7 @@ export function DatasetTable({
                     };
                     setTimeout(() => {
                       const evt = new CustomEvent("aladin-add-catalog", { detail: evtDetail });
-                      (window as any).dispatchEvent(evt);
+                      window.dispatchEvent(evt);
                     }, 0);
                   } catch (err) {
                     console.error(err);
@@ -386,7 +400,7 @@ export function DatasetTable({
         return raw;
       },
     }));
-  }, [orderedColumns, addingChildren, childrenError]);
+  }, [orderedColumns, addingChildren, childrenError, datasetSlug]);
 
   const table = useReactTable({
     data,
@@ -420,45 +434,9 @@ export function DatasetTable({
     },
   });
 
-  // Component to fetch VizieR catalogs for a given bibcode (server-proxied).
+  // Component to display ADS/VizieR links from the build-time VizieR cache.
   function RefRow({ colId, raw }: { colId: string; raw: string }) {
     const bibcode = bibcodeFromRefValue(raw);
-
-
-    /* client-side Vizier fetch removed; using build-time cache */
-      if (!bibcode) return;
-
-        try {
-          // Directly query Vizier ASU-TSV endpoint (CORS is allowed by Vizier)
-          const url = `https://vizier.u-strasbg.fr/viz-bin/asu-tsv?-ref=${encodeURIComponent(bibcode)}&-out.max=200`;
-          // client-side fetch removed; build-time cache is used instead.
-          // (Previous implementation queried Vizier from the browser here, but
-          // we now precompute and bundle results at build time.)
-          let catalogs = [];
-
-          // If no catalogs found, try a heuristic: derive a Vizier source id from the bibcode
-          // e.g. 2009AJ....137.3100W -> J/AJ/137/3100
-          if (catalogs.length === 0 && bibcode) {
-            // Older bibcodes use runs of dots as separators (e.g. 2011ApJ...733...46S).
-            // Use a more flexible regex that accepts one-or-more dots between components.
-            const m = String(bibcode).match(/^(?:\d{4})([A-Za-z]{1,6})\.+(\d+)\.+(\d+)/);
-            if (m) {
-              const journal = m[1];
-              const volume = m[2];
-              const page = m[3];
-              const guess = `J/${journal}/${volume}/${page}`;
-              // client-side fallback probe removed; build-time cache will contain
-              // heuristically-derived sources when available (no-op here).
-            }
-          }
-
-          // Discard client-side fetch results; build-time cache is used instead.
-        } catch (err) {
-          console.warn("vizier fetch error", err);
-        }
-
-
-
     const bibcodeStr = bibcode ?? null;
 
     const adsNode: ReactNode = raw ? (
@@ -479,8 +457,7 @@ export function DatasetTable({
       <span className="text-muted-foreground">—</span>
     );
 
-    // Look up build-time cache (generated by scripts/generate-datasets.mjs)
-    const entry = bibcodeStr ? (vizierCatalogs as Record<string, any>)[bibcodeStr] ?? null : null;
+    const entry = bibcodeStr ? vizierByBibcode[bibcodeStr] ?? null : null;
 
     let vizierCell: ReactNode = <span className="text-muted-foreground">—</span>;
     if (!bibcodeStr) {

@@ -18,10 +18,10 @@ export function AladinLiteViewer({
   onToggleSelectId?: (rowId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const aladinRef = useRef<any>(null);
-  const catalogRef = useRef<any>(null);
-  const sourceByIdRef = useRef<Map<string, any>>(new Map());
-  const selectedSourceRef = useRef<any>(null);
+  const aladinRef = useRef<AladinInstance | null>(null);
+  const catalogRef = useRef<AladinCatalog | null>(null);
+  const sourceByIdRef = useRef<Map<string, AladinSource>>(new Map());
+  const selectedSourceRef = useRef<AladinSource | null>(null);
   const onToggleSelectIdRef = useRef<typeof onToggleSelectId>(onToggleSelectId);
   const [loaded, setLoaded] = useState(false);
   const [viewerReady, setViewerReady] = useState(false);
@@ -42,6 +42,7 @@ export function AladinLiteViewer({
     if (!window.A) return;
 
     let cancelled = false;
+    const container = containerRef.current;
 
     const waitWithTimeout = async <T,>(promise: Promise<T>, ms: number): Promise<T> => {
       let timeoutId: number | undefined;
@@ -59,17 +60,18 @@ export function AladinLiteViewer({
 
     const ensureAladin = async () => {
       const A = window.A;
+      if (!A) return;
 
       // Aladin Lite v3 initializes WASM asynchronously; its own examples use:
       //   A.init.then(() => A.aladin(...))
-      const initThenable = A?.init && typeof A.init.then === "function" ? (A.init as Promise<unknown>) : null;
+      const initThenable = A.init ?? null;
       if (initThenable) {
         await waitWithTimeout(initThenable, 15_000);
       }
       if (cancelled) return;
 
       if (!aladinRef.current) {
-        aladinRef.current = A.aladin(containerRef.current, {
+        aladinRef.current = A.aladin(container, {
           survey: "P/DSS2/color",
           fov: 180,
           target: initialTarget,
@@ -79,7 +81,7 @@ export function AladinLiteViewer({
         catalogRef.current = A.catalog({ name: "LVDB", sourceSize: 8, color: "#ff3b30", onClick: "showTable" });
         aladinRef.current.addCatalog(catalogRef.current);
 
-        aladinRef.current.on("objectClicked", (obj: any) => {
+        aladinRef.current.on("objectClicked", (obj) => {
           if (!obj) return;
           const catalog = typeof obj.getCatalog === "function" ? obj.getCatalog() : null;
           if (!catalog || catalog.name !== "LVDB") return;
@@ -167,12 +169,12 @@ export function AladinLiteViewer({
     if (!catalogRef.current) return;
 
     const A = window.A;
+    if (!A) return;
 
     catalogRef.current.removeAll();
     sourceByIdRef.current = new Map();
 
-    // Add all sources
-    const srcs: any[] = [];
+    const srcs: AladinSource[] = [];
     for (const s of sources) {
       if (!Number.isFinite(s.ra) || !Number.isFinite(s.dec)) continue;
       const src = A.source(s.ra, s.dec, { id: s.id, title: s.title ?? "" });
@@ -190,10 +192,17 @@ export function AladinLiteViewer({
 
     const handler = (evt: Event) => {
       try {
-        const ce = evt as CustomEvent<{ url: string; options?: any; name?: string; identifier?: string; rowId?: string }>;
+        const ce = evt as CustomEvent<{
+          url: string;
+          options?: AladinCatalogOptions;
+          name?: string;
+          identifier?: string;
+          rowId?: string;
+        }>;
         const url = ce?.detail?.url;
         if (!url) return;
         const A = window.A;
+        if (!A) return;
         const opts = ce?.detail?.options ?? { sourceSize: 12, color: "#f08080" };
         const name = ce?.detail?.name ?? (ce?.detail?.identifier ? `children:${ce.detail.identifier}` : `simbad-children`);
         const rowId = ce?.detail?.rowId ?? null;
@@ -202,7 +211,7 @@ export function AladinLiteViewer({
         const successCallback = () => {
           console.log(`Catalog from URL loaded in Aladin: ${url}`);
           try {
-            (window as any).dispatchEvent(
+            window.dispatchEvent(
               new CustomEvent("aladin-add-catalog-success", { detail: { rowId, url, name, identifier } }),
             );
           } catch {
@@ -214,12 +223,13 @@ export function AladinLiteViewer({
         try {
           catalog = A.catalogFromURL(url, opts, successCallback);
           if (!catalog) {
-            (window as any).dispatchEvent(
+            window.dispatchEvent(
               new CustomEvent("aladin-add-catalog-error", { detail: { rowId, url, name, identifier, error: "Catalog not created" } }),
             );
+            return;
           }
         } catch (err) {
-          (window as any).dispatchEvent(
+          window.dispatchEvent(
             new CustomEvent("aladin-add-catalog-error", { detail: { rowId, url, name, identifier, error: String(err) } }),
           );
           throw err;
@@ -234,7 +244,6 @@ export function AladinLiteViewer({
         if (aladinRef.current && typeof aladinRef.current.addCatalog === "function") {
           aladinRef.current.addCatalog(catalog);
         }
-      
       } catch (err) {
         console.error("aladin-add-catalog handler error", err);
       }

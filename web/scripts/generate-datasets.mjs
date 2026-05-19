@@ -45,7 +45,7 @@ function parseCsvLine(line) {
   return out;
 }
 
-async function readCsv({ filePath, limitRows }) {
+async function readCsv({ filePath }) {
   const text = await fs.readFile(filePath, "utf8");
   const lines = text.split(/\r?\n/).filter((l) => l.length > 0);
   if (lines.length === 0) {
@@ -171,7 +171,7 @@ async function main() {
     const txt = await fs.readFile(vizierCacheJson, "utf8");
     cache = JSON.parse(txt);
     console.log(`Loaded existing Vizier cache: ${Object.keys(cache).length} entries`);
-  } catch (err) {
+  } catch {
     cache = {};
     console.log("No existing Vizier cache found; will create a new one.");
   }
@@ -195,31 +195,6 @@ async function main() {
   const missing = bibcodes.filter((b) => !(b in cache));
   console.log(`Need to fetch ${missing.length} missing bibcodes`);
 
-  // Helper: limit concurrency
-  async function mapLimit(arr, limit, fn) {
-    const ret = [];
-    const executing = [];
-    for (const item of arr) {
-      const p = Promise.resolve().then(() => fn(item));
-      ret.push(p);
-      executing.push(p);
-      if (executing.length >= limit) {
-        await Promise.race(executing).catch(() => {});
-        // Remove settled promises
-        for (let i = executing.length - 1; i >= 0; i--) {
-          if (executing[i].settled) executing.splice(i, 1);
-        }
-        // Fallback: rebuild executing to only include pending ones
-        executing.length = 0;
-        for (const r of ret) {
-          if (!r.finally) continue;
-        }
-      }
-    }
-    return Promise.all(ret);
-  }
-
-  // Simpler concurrency implementation
   async function processWithConcurrency(items, limit, fn) {
     const results = [];
     let i = 0;
@@ -272,7 +247,7 @@ async function main() {
               const found = names.filter((n) => n.startsWith(guess));
               if (found.length) catalogs = Array.from(new Set(found));
             }
-          } catch (err) {
+          } catch {
             // ignore
           }
         }

@@ -195,7 +195,7 @@ async function main() {
     const txt = await fs.readFile(outJson, "utf8");
     cache = JSON.parse(txt);
     console.log(`Loaded existing SIMBAD cache: ${Object.keys(cache).length} dataset entries`);
-  } catch (err) {
+  } catch {
     cache = {};
     console.log("No existing SIMBAD cache found; will create a new one.");
   }
@@ -282,8 +282,6 @@ async function main() {
       const candidates = [name, ...Array.from(suffixNames)];
 
       const entry = { fetchedAt: new Date().toISOString() };
-      let text = null;
-      let usedIdent = null;
       let vrows = null;
 
       try {
@@ -291,16 +289,14 @@ async function main() {
           const url = `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(ident)}&output.format=votable&output.params=TYPED_ID,MATCHING_ID,ANG_DIST,MAIN_ID,OTYPE_S,RA_d,DEC_d,NB_REF`;
           const res = await fetch(url, { method: "GET" });
           if (!res.ok) {
-            const txt = await res.text();
             // If HTTP error, move to next candidate
             console.log(`HTTP ${res.status} for ${slugs.join('|')}/${rowId} ident='${ident}'`);
             continue;
           }
-          text = await res.text();
+          const text = await res.text();
           const parsed = parseVOTable(text);
           vrows = parsed.rows;
           if (vrows && vrows.length > 0) {
-            usedIdent = ident;
             break;
           }
           // otherwise try next candidate
@@ -392,13 +388,13 @@ async function main() {
                           best.sep = angularSeparationArcsec(ra0, dec0, coords.ra, coords.dec);
                         }
                       }
-                    } catch (err) {
+                    } catch {
                       // ignore ascii parse failures
                     }
                   }
                 }
               }
-            } catch (err) {
+            } catch {
               // ignore detail-fetch errors; we'll still record what we have
             }
           }
