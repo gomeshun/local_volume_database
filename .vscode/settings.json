@@ -3,7 +3,10 @@
         "/^node -v && npm -v$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "npm run lint": true,
+        "npx tsc": true,
+        "npx eslint": true
     },
     "chat.agent.maxRequests": 250,
     "files.associations": {

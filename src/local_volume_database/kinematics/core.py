@@ -9,6 +9,7 @@ import re
 import time
 import urllib.parse
 import urllib.request
+import zipfile
 from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
@@ -18,7 +19,7 @@ import numpy.ma as ma
 from astropy import units as u
 from astropy.coordinates import Angle, SkyCoord
 from astropy.io import ascii
-from astropy.table import Row, Table
+from astropy.table import Row, Table, vstack
 
 
 STANDARD_COLUMNS = [
@@ -127,6 +128,17 @@ class KinematicSource:
         Maximum allowed angular separation for nearest-position assignment.
     membership_probability_scale : float, optional
         Factor applied to membership probabilities after reading.
+    row_filters : Mapping[str, str or Sequence[str]], optional
+        Exact row filters applied before normalization. Each filter keeps rows
+        whose column value matches one of the configured strings.
+    row_min_values : Mapping[str, float], optional
+        Numeric row filters applied before normalization. Each filter keeps rows
+        whose column value is greater than or equal to the configured minimum.
+    missing_values : Sequence[str], optional
+        Additional source-specific placeholder strings treated as missing.
+    archive_members : Mapping[str, str], optional
+        Zip archive members to parse, keyed by LVDB object key. Parsed rows get
+        an ``object_key`` column populated from this mapping.
     notes : str, optional
         Human-readable notes about the source table.
     """
@@ -147,6 +159,10 @@ class KinematicSource:
     nearest_object_keys: Sequence[str] = field(default_factory=tuple)
     nearest_max_sep_deg: float = 2.0
     membership_probability_scale: float = 1.0
+    row_filters: Mapping[str, str | Sequence[str]] = field(default_factory=dict)
+    row_min_values: Mapping[str, float] = field(default_factory=dict)
+    missing_values: Sequence[str] = field(default_factory=tuple)
+    archive_members: Mapping[str, str] = field(default_factory=dict)
     notes: str = ""
 
     @property
@@ -1045,7 +1061,7 @@ def fetch_source_table(
     if not source.data_url:
         raise ValueError(f"Non-VizieR source {source.name} is missing data_url")
 
-    suffix = "txt" if source.table_format == "cds" else source.table_format
+    suffix = "zip" if source.archive_members else ("txt" if source.table_format == "cds" else source.table_format)
     payload = client.fetch_url_bytes(
         source.data_url,
         endpoint=source.provider,
@@ -1053,10 +1069,46 @@ def fetch_source_table(
         cache_key=source.source_id,
         force=force,
     )
-    table = read_table_payload(payload, source.table_format)
+    if source.archive_members:
+        table = read_archive_member_tables(payload, source.archive_members, source.table_format)
+    else:
+        table = read_table_payload(payload, source.table_format)
     if max_rows is not None:
         return cast(Table, table[:max_rows])
     return table
+
+
+def read_archive_member_tables(
+    payload: bytes,
+    archive_members: Mapping[str, str],
+    table_format: str,
+) -> Table:
+    """Read selected zip archive members into one Astropy table.
+
+    Parameters
+    ----------
+    payload : bytes
+        Raw zip archive payload.
+    archive_members : Mapping[str, str]
+        Zip members to parse, keyed by LVDB object key.
+    table_format : str
+        Supported table format key used for each archive member.
+
+    Returns
+    -------
+    astropy.table.Table
+        Combined table with an added ``object_key`` column.
+    """
+    tables: list[Table] = []
+    with zipfile.ZipFile(BytesIO(payload)) as archive:
+        for object_key, member_name in archive_members.items():
+            with archive.open(member_name) as handle:
+                table = read_table_payload(handle.read(), table_format)
+            table["object_key"] = [object_key] * len(table)
+            tables.append(table)
+    if not tables:
+        return Table()
+    return cast(Table, vstack(tables, join_type="outer", metadata_conflicts="silent"))
 
 
 def read_table_payload(payload: bytes, table_format: str) -> Table:
@@ -1084,6 +1136,12 @@ def read_table_payload(payload: bytes, table_format: str) -> Table:
     if table_format == "cds":
         text = payload.decode("utf-8", "replace")
         return cast(Table, ascii.read(text.splitlines(), format="cds"))
+    if table_format == "commented_header":
+        text = payload.decode("utf-8", "replace")
+        return cast(
+            Table,
+            ascii.read(text.splitlines(), format="commented_header", guess=False, fast_reader=False),
+        )
     raise ValueError(f"Unsupported kinematics table format: {table_format}")
 
 
@@ -1111,11 +1169,22 @@ def normalize_table(
     dwarf_by_key = {str(row["key"]): row for row in dwarf_rows}
     normalized: list[dict[str, Any]] = []
     for index, row in enumerate(cast(Sequence[Row], table)):
+        if not row_matches_filters(
+            row,
+            source.row_filters,
+            row_min_values=source.row_min_values,
+            missing_values=source.missing_values,
+        ):
+            continue
         object_key = resolve_object_key(row, source, dwarf_by_key)
         if not object_key:
             continue
         object_name = str(dwarf_by_key.get(object_key, {}).get("name", object_key))
-        membership_probability = get_float(row, source.columns.get("membership_probability"))
+        membership_probability = get_float(
+            row,
+            source.columns.get("membership_probability"),
+            missing_values=source.missing_values,
+        )
         if membership_probability is not None:
             membership_probability *= source.membership_probability_scale
 
@@ -1130,23 +1199,88 @@ def normalize_table(
                 "source_table": source.source_id,
                 "source_url": source.url,
                 "source_row": index,
-                "star_id": get_string(row, source.columns.get("star_id")),
-                "ra_deg": get_angle_deg(row, source.columns.get("ra_deg"), is_ra=True),
-                "dec_deg": get_angle_deg(row, source.columns.get("dec_deg"), is_ra=False),
-                "vlos_kms": get_float(row, source.columns.get("vlos_kms")),
-                "vlos_err_kms": get_float(row, source.columns.get("vlos_err_kms")),
-                "pmra_masyr": get_float(row, source.columns.get("pmra_masyr")),
-                "pmra_err_masyr": get_float(row, source.columns.get("pmra_err_masyr")),
-                "pmdec_masyr": get_float(row, source.columns.get("pmdec_masyr")),
-                "pmdec_err_masyr": get_float(row, source.columns.get("pmdec_err_masyr")),
+                "star_id": get_string(row, source.columns.get("star_id"), missing_values=source.missing_values),
+                "ra_deg": get_angle_deg(
+                    row,
+                    source.columns.get("ra_deg"),
+                    is_ra=True,
+                    missing_values=source.missing_values,
+                ),
+                "dec_deg": get_angle_deg(
+                    row,
+                    source.columns.get("dec_deg"),
+                    is_ra=False,
+                    missing_values=source.missing_values,
+                ),
+                "vlos_kms": get_float(row, source.columns.get("vlos_kms"), missing_values=source.missing_values),
+                "vlos_err_kms": get_float(
+                    row,
+                    source.columns.get("vlos_err_kms"),
+                    missing_values=source.missing_values,
+                ),
+                "pmra_masyr": get_float(row, source.columns.get("pmra_masyr"), missing_values=source.missing_values),
+                "pmra_err_masyr": get_float(
+                    row,
+                    source.columns.get("pmra_err_masyr"),
+                    missing_values=source.missing_values,
+                ),
+                "pmdec_masyr": get_float(row, source.columns.get("pmdec_masyr"), missing_values=source.missing_values),
+                "pmdec_err_masyr": get_float(
+                    row,
+                    source.columns.get("pmdec_err_masyr"),
+                    missing_values=source.missing_values,
+                ),
                 "membership_probability": membership_probability,
-                "membership_flag": get_string(row, source.columns.get("membership_flag")),
-                "feh": get_float(row, source.columns.get("feh")),
-                "feh_err": get_float(row, source.columns.get("feh_err")),
+                "membership_flag": get_string(
+                    row,
+                    source.columns.get("membership_flag"),
+                    missing_values=source.missing_values,
+                ),
+                "feh": get_float(row, source.columns.get("feh"), missing_values=source.missing_values),
+                "feh_err": get_float(row, source.columns.get("feh_err"), missing_values=source.missing_values),
                 "original_row_json": json.dumps(row_to_jsonable_dict(row), sort_keys=True, ensure_ascii=True),
             }
         )
     return normalized
+
+
+def row_matches_filters(
+    row: Row,
+    row_filters: Mapping[str, str | Sequence[str]],
+    row_min_values: Mapping[str, float] | None = None,
+    missing_values: Sequence[str] = (),
+) -> bool:
+    """Return whether a provider row satisfies exact source filters.
+
+    Parameters
+    ----------
+    row : astropy.table.Row
+        Provider table row.
+    row_filters : Mapping[str, str or Sequence[str]]
+        Column filters to apply. Values are compared as stripped strings.
+    row_min_values : Mapping[str, float], optional
+        Numeric minimum filters to apply.
+    missing_values : Sequence[str], optional
+        Additional placeholder strings treated as missing.
+
+    Returns
+    -------
+    bool
+        ``True`` when every configured filter matches.
+    """
+    for column, allowed_values in row_filters.items():
+        value = get_string(row, column, missing_values=missing_values)
+        if value is None:
+            return False
+        allowed = [allowed_values] if isinstance(allowed_values, str) else allowed_values
+        allowed_text = {str(candidate).strip() for candidate in allowed}
+        if value not in allowed_text:
+            return False
+    for column, minimum in (row_min_values or {}).items():
+        value = get_float(row, column, missing_values=missing_values)
+        if value is None or value < minimum:
+            return False
+    return True
 
 
 def write_kinematics_outputs(rows: Sequence[Mapping[str, Any]], output_dir: Path) -> None:
@@ -1212,17 +1346,29 @@ def resolve_object_key(
         return source.object_key
 
     if source.object_key_column:
-        raw_value = get_string(row, source.object_key_column)
+        raw_value = get_string(row, source.object_key_column, missing_values=source.missing_values)
         if raw_value:
             if raw_value in source.object_key_map:
                 return source.object_key_map[raw_value]
             for prefix, object_key in source.object_key_prefix_map.items():
                 if raw_value.startswith(prefix):
                     return object_key
+            if raw_value in dwarf_by_key:
+                return raw_value
 
     if source.nearest_object_keys:
-        ra_deg = get_angle_deg(row, source.columns.get("ra_deg"), is_ra=True)
-        dec_deg = get_angle_deg(row, source.columns.get("dec_deg"), is_ra=False)
+        ra_deg = get_angle_deg(
+            row,
+            source.columns.get("ra_deg"),
+            is_ra=True,
+            missing_values=source.missing_values,
+        )
+        dec_deg = get_angle_deg(
+            row,
+            source.columns.get("dec_deg"),
+            is_ra=False,
+            missing_values=source.missing_values,
+        )
         if ra_deg is None or dec_deg is None:
             return None
         source_coord = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg)
@@ -1242,7 +1388,7 @@ def resolve_object_key(
     return None
 
 
-def get_value(row: Row, columns: str | Sequence[str] | None) -> Any:
+def get_value(row: Row, columns: str | Sequence[str] | None, missing_values: Sequence[str] = ()) -> Any:
     """Return the first non-missing value from candidate columns.
 
     Parameters
@@ -1251,6 +1397,8 @@ def get_value(row: Row, columns: str | Sequence[str] | None) -> Any:
         Provider table row.
     columns : str or Sequence[str], optional
         Candidate column name or names.
+    missing_values : Sequence[str], optional
+        Additional placeholder strings treated as missing.
 
     Returns
     -------
@@ -1264,13 +1412,13 @@ def get_value(row: Row, columns: str | Sequence[str] | None) -> Any:
         if column not in row.colnames:
             continue
         value = row[column]
-        if is_missing(value):
+        if is_missing(value, missing_values=missing_values):
             continue
         return value
     return None
 
 
-def get_string(row: Row, columns: str | Sequence[str] | None) -> str | None:
+def get_string(row: Row, columns: str | Sequence[str] | None, missing_values: Sequence[str] = ()) -> str | None:
     """Return a provider row value as a stripped string.
 
     Parameters
@@ -1279,13 +1427,15 @@ def get_string(row: Row, columns: str | Sequence[str] | None) -> str | None:
         Provider table row.
     columns : str or Sequence[str], optional
         Candidate column name or names.
+    missing_values : Sequence[str], optional
+        Additional placeholder strings treated as missing.
 
     Returns
     -------
     str or None
         String value, or ``None`` when unavailable.
     """
-    value = get_value(row, columns)
+    value = get_value(row, columns, missing_values=missing_values)
     if value is None:
         return None
     if isinstance(value, bytes):
@@ -1294,7 +1444,7 @@ def get_string(row: Row, columns: str | Sequence[str] | None) -> str | None:
     return text or None
 
 
-def get_float(row: Row, columns: str | Sequence[str] | None) -> float | None:
+def get_float(row: Row, columns: str | Sequence[str] | None, missing_values: Sequence[str] = ()) -> float | None:
     """Return a provider row value as a finite float.
 
     Parameters
@@ -1303,13 +1453,15 @@ def get_float(row: Row, columns: str | Sequence[str] | None) -> float | None:
         Provider table row.
     columns : str or Sequence[str], optional
         Candidate column name or names.
+    missing_values : Sequence[str], optional
+        Additional placeholder strings treated as missing.
 
     Returns
     -------
     float or None
         Float value, or ``None`` when unavailable or non-numeric.
     """
-    value = get_value(row, columns)
+    value = get_value(row, columns, missing_values=missing_values)
     if value is None:
         return None
     try:
@@ -1321,7 +1473,12 @@ def get_float(row: Row, columns: str | Sequence[str] | None) -> float | None:
     return result
 
 
-def get_angle_deg(row: Row, columns: str | Sequence[str] | None, is_ra: bool) -> float | None:
+def get_angle_deg(
+    row: Row,
+    columns: str | Sequence[str] | None,
+    is_ra: bool,
+    missing_values: Sequence[str] = (),
+) -> float | None:
     """Return an angle value in decimal degrees.
 
     Parameters
@@ -1332,13 +1489,15 @@ def get_angle_deg(row: Row, columns: str | Sequence[str] | None, is_ra: bool) ->
         Candidate column name or names.
     is_ra : bool
         Interpret sexagesimal strings as right ascension when ``True``.
+    missing_values : Sequence[str], optional
+        Additional placeholder strings treated as missing.
 
     Returns
     -------
     float or None
         Angle in degrees, or ``None`` when unavailable or unparsable.
     """
-    value = get_value(row, columns)
+    value = get_value(row, columns, missing_values=missing_values)
     if value is None:
         return None
     try:
@@ -1356,13 +1515,15 @@ def get_angle_deg(row: Row, columns: str | Sequence[str] | None, is_ra: bool) ->
         return None
 
 
-def is_missing(value: Any) -> bool:
+def is_missing(value: Any, missing_values: Sequence[str] = ()) -> bool:
     """Return whether a provider value should be treated as missing.
 
     Parameters
     ----------
     value : Any
         Provider value to inspect.
+    missing_values : Sequence[str], optional
+        Additional placeholder strings treated as missing.
 
     Returns
     -------
@@ -1376,7 +1537,8 @@ def is_missing(value: Any) -> bool:
     if isinstance(value, float) and math.isnan(value):
         return True
     text = str(value).strip()
-    return text in {"", "--", "nan", "None"}
+    source_missing = {str(candidate).strip() for candidate in missing_values}
+    return text in {"", "--", "nan", "None"} or text in source_missing
 
 
 def row_to_jsonable_dict(row: Row) -> dict[str, Any]:

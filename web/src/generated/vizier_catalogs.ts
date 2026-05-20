@@ -1999,5 +1999,65 @@ export const vizierCatalogs =
   "2025PASA...42...26K": {
     "catalogs": [],
     "fetchedAt": "2026-01-26T06:35:05.236Z"
+  },
+  "2008ApJ...676..184T": {
+    "catalogs": [
+      "J/ApJ/676/184",
+      "J/ApJ/676/184/table1",
+      "J/ApJ/676/184/table2"
+    ],
+    "fetchedAt": "2026-05-19T08:02:11.881Z"
+  },
+  "2020MNRAS.492.1061V": {
+    "catalogs": [
+      "J/MNRAS/492/1061",
+      "J/MNRAS/492/1061/table1",
+      "J/MNRAS/492/1061/table2"
+    ],
+    "fetchedAt": "2026-05-19T08:02:11.924Z"
+  },
+  "2024MNRAS.533.1178K": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:11.925Z"
+  },
+  "2025Ap.....68..327P": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:11.925Z"
+  },
+  "2025ApJ...992...54C": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:15.577Z"
+  },
+  "2025ApJ...993..228B": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:15.588Z"
+  },
+  "2026ApJ...997..271M": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:15.631Z"
+  },
+  "2026ApJ...998....3W": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:15.867Z"
+  },
+  "2026ApJ...998...20H": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:17.192Z"
+  },
+  "2026ApJ...998...47S": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:17.206Z"
+  },
+  "2026ApJ...999..140G": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:17.226Z"
+  },
+  "2026ApJ..1000...46T": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:17.500Z"
+  },
+  "2026ApJS..282...16L": {
+    "catalogs": [],
+    "fetchedAt": "2026-05-19T08:02:18.764Z"
   }
 } as const;

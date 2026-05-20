@@ -13,10 +13,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Ji2021ApJ...921...32J",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 1524,
+    "totalRows": 3104,
     "spectroscopyRows": 1016,
-    "properMotionRows": 508,
-    "gaiaRows": 508
+    "properMotionRows": 2088,
+    "gaiaRows": 1135
   },
   {
     "key": "aquarius_2",
@@ -27,10 +27,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Bruce2023ApJ...950..167B",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 24,
-    "spectroscopyRows": 12,
-    "properMotionRows": 12,
-    "gaiaRows": 12
+    "totalRows": 87,
+    "spectroscopyRows": 28,
+    "properMotionRows": 59,
+    "gaiaRows": 35
   },
   {
     "key": "aquarius_3",
@@ -41,10 +41,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Cerny2025ApJ...979..164C",
     "ref_proper_motion": "Cerny2025ApJ...979..164C",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 23,
+    "spectroscopyRows": 19,
+    "properMotionRows": 4,
+    "gaiaRows": 4
   },
   {
     "key": "bootes_1",
@@ -53,12 +53,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "14.5135",
     "distance": "66.37",
     "host": "mw",
-    "ref_vlos": "Sandford2025arXiv250902546S",
+    "ref_vlos": "Sandford2026ApJ...998...47S",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 236,
-    "spectroscopyRows": 236,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 1239,
+    "spectroscopyRows": 684,
+    "properMotionRows": 555,
+    "gaiaRows": 340
   },
   {
     "key": "bootes_2",
@@ -67,12 +67,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "12.8553",
     "distance": "41.69",
     "host": "mw",
-    "ref_vlos": "Bruce2023ApJ...950..167B",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 34,
-    "spectroscopyRows": 17,
-    "properMotionRows": 17,
-    "gaiaRows": 17
+    "totalRows": 357,
+    "spectroscopyRows": 198,
+    "properMotionRows": 159,
+    "gaiaRows": 134
   },
   {
     "key": "bootes_3",
@@ -81,12 +81,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "26.8",
     "distance": "46.56",
     "host": "mw",
-    "ref_vlos": "Carlin2009ApJ...702L...9C",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 688,
+    "spectroscopyRows": 247,
+    "properMotionRows": 441,
+    "gaiaRows": 314
   },
   {
     "key": "bootes_4",
@@ -97,10 +97,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
+    "totalRows": 8,
     "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 8,
+    "gaiaRows": 4
   },
   {
     "key": "bootes_5",
@@ -123,12 +123,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "33.5521",
     "distance": "210.86",
     "host": "mw",
-    "ref_vlos": "Simon2007ApJ...670..313S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 721,
+    "spectroscopyRows": 367,
+    "properMotionRows": 354,
+    "gaiaRows": 216
   },
   {
     "key": "canes_venatici_2",
@@ -137,12 +137,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "34.3226",
     "distance": "159.96",
     "host": "mw",
-    "ref_vlos": "Simon2007ApJ...670..313S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 183,
+    "spectroscopyRows": 113,
+    "properMotionRows": 70,
+    "gaiaRows": 57
   },
   {
     "key": "carina_1",
@@ -153,10 +153,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Walker2009AJ....137.3100W",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 1982,
+    "totalRows": 7010,
     "spectroscopyRows": 1982,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 5028,
+    "gaiaRows": 2514
   },
   {
     "key": "carina_2",
@@ -167,10 +167,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "lmc",
     "ref_vlos": "Li2018ApJ...857..145L",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 282,
+    "totalRows": 456,
     "spectroscopyRows": 282,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 174,
+    "gaiaRows": 87
   },
   {
     "key": "carina_3",
@@ -181,8 +181,22 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "lmc",
     "ref_vlos": "Li2018ApJ...857..145L",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 125,
+    "totalRows": 149,
     "spectroscopyRows": 125,
+    "properMotionRows": 24,
+    "gaiaRows": 12
+  },
+  {
+    "key": "carina_4",
+    "name": "Carina IV",
+    "ra": "104.046",
+    "dec": "-63.319",
+    "distance": "104.71",
+    "host": "mw",
+    "ref_vlos": "",
+    "ref_proper_motion": "Tan2026ApJ..1000...46T",
+    "totalRows": 0,
+    "spectroscopyRows": 0,
     "properMotionRows": 0,
     "gaiaRows": 0
   },
@@ -195,10 +209,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Heiger2024ApJ...961..234H",
     "ref_proper_motion": "Heiger2024ApJ...961..234H",
-    "totalRows": 118,
+    "totalRows": 152,
     "spectroscopyRows": 62,
-    "properMotionRows": 56,
-    "gaiaRows": 56
+    "properMotionRows": 90,
+    "gaiaRows": 64
   },
   {
     "key": "cetus_2",
@@ -209,10 +223,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
+    "totalRows": 10,
     "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 10,
+    "gaiaRows": 5
   },
   {
     "key": "cetus_3",
@@ -221,12 +235,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "-4.27",
     "distance": "251.19",
     "host": "mw",
-    "ref_vlos": "",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 46,
+    "spectroscopyRows": 30,
+    "properMotionRows": 16,
+    "gaiaRows": 16
   },
   {
     "key": "columba_1",
@@ -235,12 +249,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "-28.04253",
     "distance": "182.81",
     "host": "mw",
-    "ref_vlos": "Fritz2019A&A...623A.129F",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 97,
-    "spectroscopyRows": 49,
-    "properMotionRows": 48,
-    "gaiaRows": 48
+    "totalRows": 218,
+    "spectroscopyRows": 121,
+    "properMotionRows": 97,
+    "gaiaRows": 90
   },
   {
     "key": "coma_berenices_1",
@@ -249,12 +263,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "23.9069",
     "distance": "42.27",
     "host": "mw",
-    "ref_vlos": "Simon2007ApJ...670..313S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 347,
+    "spectroscopyRows": 199,
+    "properMotionRows": 148,
+    "gaiaRows": 107
   },
   {
     "key": "crater_2",
@@ -265,10 +279,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Ji2021ApJ...921...32J",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 621,
+    "totalRows": 1716,
     "spectroscopyRows": 414,
-    "properMotionRows": 207,
-    "gaiaRows": 207
+    "properMotionRows": 1302,
+    "gaiaRows": 680
   },
   {
     "key": "draco_1",
@@ -277,12 +291,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "57.9185",
     "distance": "81.55",
     "host": "mw",
-    "ref_vlos": "Walker2015MNRAS.448.2717W",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 1565,
-    "spectroscopyRows": 1565,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 6989,
+    "spectroscopyRows": 3209,
+    "properMotionRows": 3780,
+    "gaiaRows": 2113
   },
   {
     "key": "draco_2",
@@ -291,12 +305,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "64.56527778",
     "distance": "21.58",
     "host": "mw",
-    "ref_vlos": "Longeard2018MNRAS.480.2609L",
-    "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "ref_vlos": "Cerny2026arXiv260217652C",
+    "ref_proper_motion": "Warfield2026ApJ...998....3W",
+    "totalRows": 206,
+    "spectroscopyRows": 97,
+    "properMotionRows": 109,
+    "gaiaRows": 87
   },
   {
     "key": "eridanus_2",
@@ -307,10 +321,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Li2017ApJ...838....8L",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
+    "totalRows": 40,
     "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 40,
+    "gaiaRows": 20
   },
   {
     "key": "eridanus_4",
@@ -321,10 +335,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Heiger2024ApJ...961..234H",
     "ref_proper_motion": "Cerny2021ApJ...920L..44C",
-    "totalRows": 98,
-    "spectroscopyRows": 53,
-    "properMotionRows": 45,
-    "gaiaRows": 45
+    "totalRows": 148,
+    "spectroscopyRows": 89,
+    "properMotionRows": 59,
+    "gaiaRows": 59
   },
   {
     "key": "fornax_1",
@@ -335,10 +349,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Walker2009AJ....137.3100W",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 2633,
-    "spectroscopyRows": 2633,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 36552,
+    "spectroscopyRows": 3370,
+    "properMotionRows": 33182,
+    "gaiaRows": 16691
   },
   {
     "key": "grus_1",
@@ -349,10 +363,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Chiti2022ApJ...939...41C",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
+    "totalRows": 20,
     "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 20,
+    "gaiaRows": 10
   },
   {
     "key": "grus_2",
@@ -363,10 +377,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Simon2020ApJ...892..137S",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 235,
+    "totalRows": 345,
     "spectroscopyRows": 235,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 110,
+    "gaiaRows": 55
   },
   {
     "key": "hercules_1",
@@ -375,12 +389,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "12.7852",
     "distance": "130.62",
     "host": "mw",
-    "ref_vlos": "Simon2007ApJ...670..313S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 731,
+    "spectroscopyRows": 385,
+    "properMotionRows": 346,
+    "gaiaRows": 299
   },
   {
     "key": "horologium_1",
@@ -391,10 +405,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "lmc",
     "ref_vlos": "Koposov2015ApJ...811...62K",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
+    "totalRows": 44,
     "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 44,
+    "gaiaRows": 22
   },
   {
     "key": "horologium_2",
@@ -405,10 +419,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
+    "totalRows": 8,
     "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 8,
+    "gaiaRows": 4
   },
   {
     "key": "hydra_2",
@@ -417,12 +431,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "-31.9728",
     "distance": "151.36",
     "host": "mw",
-    "ref_vlos": "Kirby2015ApJ...810...56K",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 83,
+    "spectroscopyRows": 33,
+    "properMotionRows": 50,
+    "gaiaRows": 32
   },
   {
     "key": "hydrus_1",
@@ -433,10 +447,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "lmc",
     "ref_vlos": "Koposov2018MNRAS.479.5343K",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 139,
+    "totalRows": 421,
     "spectroscopyRows": 139,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 282,
+    "gaiaRows": 141
   },
   {
     "key": "leo_1",
@@ -445,12 +459,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "12.3059",
     "distance": "258.23",
     "host": "mw",
-    "ref_vlos": "Mateo2008ApJ...675..201M",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Bennet2024ApJ...971...98B",
-    "totalRows": 387,
-    "spectroscopyRows": 387,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 3835,
+    "spectroscopyRows": 1501,
+    "properMotionRows": 2334,
+    "gaiaRows": 1398
   },
   {
     "key": "leo_2",
@@ -459,12 +473,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "22.1529",
     "distance": "208.93",
     "host": "mw",
-    "ref_vlos": "Spencer2017ApJ...836..202S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Bennet2024ApJ...971...98B",
-    "totalRows": 471,
-    "spectroscopyRows": 471,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 1547,
+    "spectroscopyRows": 879,
+    "properMotionRows": 668,
+    "gaiaRows": 398
   },
   {
     "key": "leo_4",
@@ -473,12 +487,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "-0.5453",
     "distance": "151.36",
     "host": "mw",
-    "ref_vlos": "Jenkins2021ApJ...920...92J",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Julio2024A&A...687A.212J",
-    "totalRows": 208,
-    "spectroscopyRows": 208,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 401,
+    "spectroscopyRows": 331,
+    "properMotionRows": 70,
+    "gaiaRows": 63
   },
   {
     "key": "leo_minor_1",
@@ -501,12 +515,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "2.2194",
     "distance": "169.04",
     "host": "mw",
-    "ref_vlos": "Jenkins2021ApJ...920...92J",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Julio2024A&A...687A.212J",
-    "totalRows": 210,
-    "spectroscopyRows": 210,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 294,
+    "spectroscopyRows": 261,
+    "properMotionRows": 33,
+    "gaiaRows": 27
   },
   {
     "key": "leo_6",
@@ -517,10 +531,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Tan2025ApJ...979..176T",
     "ref_proper_motion": "Tan2025ApJ...979..176T",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 37,
+    "spectroscopyRows": 23,
+    "properMotionRows": 14,
+    "gaiaRows": 14
   },
   {
     "key": "lmc",
@@ -543,12 +557,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "5.4150472",
     "distance": "214.78",
     "host": "mw",
-    "ref_vlos": "Kim2016ApJ...833...16K",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 118,
+    "spectroscopyRows": 75,
+    "properMotionRows": 43,
+    "gaiaRows": 39
   },
   {
     "key": "pegasus_4",
@@ -557,12 +571,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "26.62",
     "distance": "89.95",
     "host": "mw",
-    "ref_vlos": "Cerny2023ApJ...942..111C",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Cerny2023ApJ...942..111C",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 475,
+    "spectroscopyRows": 282,
+    "properMotionRows": 193,
+    "gaiaRows": 193
   },
   {
     "key": "phoenix_2",
@@ -573,10 +587,24 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "lmc",
     "ref_vlos": "Fritz2019A&A...623A.129F",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 149,
+    "totalRows": 165,
     "spectroscopyRows": 77,
-    "properMotionRows": 72,
-    "gaiaRows": 72
+    "properMotionRows": 88,
+    "gaiaRows": 78
+  },
+  {
+    "key": "phoenix_3",
+    "name": "Phoenix III",
+    "ra": "26.711",
+    "dec": "-41.428",
+    "distance": "114.82",
+    "host": "mw",
+    "ref_vlos": "",
+    "ref_proper_motion": "",
+    "totalRows": 0,
+    "spectroscopyRows": 0,
+    "properMotionRows": 0,
+    "gaiaRows": 0
   },
   {
     "key": "pictor_1",
@@ -587,10 +615,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
+    "totalRows": 18,
     "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 18,
+    "gaiaRows": 9
   },
   {
     "key": "pictor_2",
@@ -601,10 +629,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "lmc",
     "ref_vlos": "Pace2025OJAp....8E.112P",
     "ref_proper_motion": "Pace2025OJAp....8E.112P",
-    "totalRows": 0,
+    "totalRows": 14,
     "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 14,
+    "gaiaRows": 7
   },
   {
     "key": "pisces_2",
@@ -613,12 +641,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "5.9555444",
     "distance": "182.81",
     "host": "mw",
-    "ref_vlos": "Kirby2015ApJ...810...56K",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 83,
+    "spectroscopyRows": 59,
+    "properMotionRows": 24,
+    "gaiaRows": 24
   },
   {
     "key": "reticulum_2",
@@ -629,10 +657,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "lmc",
     "ref_vlos": "Walker2015ApJ...808..108W",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 38,
+    "totalRows": 152,
     "spectroscopyRows": 38,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 114,
+    "gaiaRows": 57
   },
   {
     "key": "reticulum_3",
@@ -643,10 +671,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Fritz2019A&A...623A.129F",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 86,
+    "totalRows": 97,
     "spectroscopyRows": 45,
-    "properMotionRows": 41,
-    "gaiaRows": 41
+    "properMotionRows": 52,
+    "gaiaRows": 45
   },
   {
     "key": "sagittarius_1",
@@ -657,10 +685,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "McConnachie2012AJ....144....4M",
     "ref_proper_motion": "An2024MNRAS.532.3713A",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 1077,
+    "spectroscopyRows": 570,
+    "properMotionRows": 507,
+    "gaiaRows": 507
   },
   {
     "key": "sculptor_1",
@@ -671,10 +699,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Walker2009AJ....137.3100W",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 1541,
-    "spectroscopyRows": 1541,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 14699,
+    "spectroscopyRows": 1947,
+    "properMotionRows": 12752,
+    "gaiaRows": 6387
   },
   {
     "key": "segue_1",
@@ -683,12 +711,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "16.0756",
     "distance": "22.91",
     "host": "mw",
-    "ref_vlos": "Simon2011ApJ...733...46S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 522,
-    "spectroscopyRows": 522,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 1157,
+    "spectroscopyRows": 900,
+    "properMotionRows": 257,
+    "gaiaRows": 232
   },
   {
     "key": "segue_2",
@@ -697,12 +725,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "20.1624",
     "distance": "36.48",
     "host": "mw",
-    "ref_vlos": "Kirby2013ApJ...770...16K",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 647,
-    "spectroscopyRows": 647,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 1261,
+    "spectroscopyRows": 1016,
+    "properMotionRows": 245,
+    "gaiaRows": 226
   },
   {
     "key": "sextans_1",
@@ -713,10 +741,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Walker2009AJ....137.3100W",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 947,
-    "spectroscopyRows": 947,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 5005,
+    "spectroscopyRows": 1560,
+    "properMotionRows": 3445,
+    "gaiaRows": 1838
   },
   {
     "key": "sextans_2",
@@ -755,10 +783,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Buttry2022MNRAS.514.1706B",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 50,
-    "spectroscopyRows": 50,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 194,
+    "spectroscopyRows": 118,
+    "properMotionRows": 76,
+    "gaiaRows": 61
   },
   {
     "key": "tucana_2",
@@ -769,10 +797,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Chiti2023AJ....165...55C",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 60,
+    "totalRows": 182,
     "spectroscopyRows": 60,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 122,
+    "gaiaRows": 61
   },
   {
     "key": "tucana_3",
@@ -783,10 +811,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Simon2017ApJ...838...11S",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 151,
+    "totalRows": 299,
     "spectroscopyRows": 151,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 148,
+    "gaiaRows": 74
   },
   {
     "key": "tucana_4",
@@ -797,10 +825,10 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Simon2020ApJ...892..137S",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 223,
+    "totalRows": 263,
     "spectroscopyRows": 223,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "properMotionRows": 40,
+    "gaiaRows": 20
   },
   {
     "key": "tucana_5",
@@ -811,9 +839,9 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "host": "mw",
     "ref_vlos": "Hansen2024ApJ...968...21H",
     "ref_proper_motion": "Battaglia2022A&A...657A..54B",
-    "totalRows": 357,
+    "totalRows": 364,
     "spectroscopyRows": 57,
-    "properMotionRows": 300,
+    "properMotionRows": 307,
     "gaiaRows": 150
   },
   {
@@ -823,12 +851,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "51.9479",
     "distance": "97.27",
     "host": "mw",
-    "ref_vlos": "Simon2007ApJ...670..313S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 312,
+    "spectroscopyRows": 141,
+    "properMotionRows": 171,
+    "gaiaRows": 122
   },
   {
     "key": "ursa_major_2",
@@ -837,12 +865,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "63.1335",
     "distance": "34.67",
     "host": "mw",
-    "ref_vlos": "Simon2007ApJ...670..313S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 872,
+    "spectroscopyRows": 474,
+    "properMotionRows": 398,
+    "gaiaRows": 333
   },
   {
     "key": "ursa_minor_1",
@@ -851,12 +879,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "67.2221",
     "distance": "70.15",
     "host": "mw",
-    "ref_vlos": "Spencer2018AJ....156..257S",
+    "ref_vlos": "Geha2026ApJ...999..140G",
     "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 875,
-    "spectroscopyRows": 875,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "totalRows": 7172,
+    "spectroscopyRows": 2337,
+    "properMotionRows": 4835,
+    "gaiaRows": 2674
   },
   {
     "key": "virgo_1",
@@ -907,12 +935,12 @@ export const kinematicObjectSummaries: KinematicObjectSummary[] = [
     "dec": "51.0501",
     "distance": "38.02",
     "host": "mw",
-    "ref_vlos": "Willman2011AJ....142..128W",
-    "ref_proper_motion": "Pace2022ApJ...940..136P",
-    "totalRows": 0,
-    "spectroscopyRows": 0,
-    "properMotionRows": 0,
-    "gaiaRows": 0
+    "ref_vlos": "Chiu2026arXiv260220272C",
+    "ref_proper_motion": "Chiu2026arXiv260220272C",
+    "totalRows": 300,
+    "spectroscopyRows": 204,
+    "properMotionRows": 96,
+    "gaiaRows": 87
   }
 ];
 

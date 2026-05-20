@@ -4,6 +4,11 @@ AGENTS.mdは、コーディングエージェント用のドキュメントで�
 - 新規開発した Python コードでは、関数・メソッドに NumPy スタイルの docstring を書くこと。
 - Python 実行やテストは `uv` で構築した環境下で行うこと。例: `uv sync` で環境を用意し、`uv run python ...` または `uv run pytest ...` を使う。
 
+## kinematics データ取得方針
+- `data_kinematics/` の文献データ取得では VizieR だけで探索を終えないこと。未登録の文献については、NASA ADS の data/supplement リンク（利用できる場合）、出版社ページの machine-readable table / MRT、DOI や Crossref の supplement relation、arXiv ancillary files、MAST/KOA/Dataverse/Zenodo などの公開アーカイブも確認する。
+- 公開された machine-readable な個別星 kinematics（速度、proper motion、metallicity、membership など）が見つかった場合は、可能な限り `KinematicSource` の direct provider として登録し、raw cache は `data_kinematics/raw/` 配下、正規化済み CSV は `data_kinematics/processed/` 配下に置く。
+- `web/` へは raw provider payload や `original_row_json` を配布しない。公開用には生成済み・整形済みの kinematics 出力だけを使う。
+
 ## web/ 開発作業ログまとめ（2026-02-04時点）
 
 ### 目的 / 何を作っているか
