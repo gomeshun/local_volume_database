@@ -42,7 +42,9 @@ STANDARD_COLUMNS = [
     "pmdec_masyr",
     "pmdec_err_masyr",
     "membership_probability",
+    "membership_probability_origin",
     "membership_flag",
+    "membership_flag_origin",
     "feh",
     "feh_err",
     "original_row_json",
@@ -972,7 +974,13 @@ def normalize_gaia_dr3_rows(
                 "pmdec_masyr": float_from_mapping(gaia_row, "pmdec"),
                 "pmdec_err_masyr": float_from_mapping(gaia_row, "pmdec_error"),
                 "membership_probability": string_or_none(target.seed_membership_probability),
+                "membership_probability_origin": (
+                    "seed_source" if string_or_none(target.seed_membership_probability) else None
+                ),
                 "membership_flag": string_or_none(target.seed_membership_flag),
+                "membership_flag_origin": (
+                    "seed_source" if string_or_none(target.seed_membership_flag) else None
+                ),
                 "feh": None,
                 "feh_err": None,
                 "original_row_json": json.dumps(original_payload, sort_keys=True, ensure_ascii=True),
@@ -1231,17 +1239,78 @@ def normalize_table(
                     missing_values=source.missing_values,
                 ),
                 "membership_probability": membership_probability,
+                "membership_probability_origin": None,
                 "membership_flag": get_string(
                     row,
                     source.columns.get("membership_flag"),
                     missing_values=source.missing_values,
                 ),
+                "membership_flag_origin": None,
                 "feh": get_float(row, source.columns.get("feh"), missing_values=source.missing_values),
                 "feh_err": get_float(row, source.columns.get("feh_err"), missing_values=source.missing_values),
                 "original_row_json": json.dumps(row_to_jsonable_dict(row), sort_keys=True, ensure_ascii=True),
             }
         )
-    return normalized
+    return propagate_consistent_star_membership(normalized)
+
+
+def propagate_consistent_star_membership(
+    rows: Sequence[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Annotate and propagate consistent star-level membership metadata.
+
+    Published velocity tables sometimes place a star-level membership value on
+    only one of several repeated-observation rows. This function preserves that
+    distinction through an origin column and fills a missing value only when
+    every reported value for the same source, LVDB object, and star identifier
+    agrees.
+
+    Parameters
+    ----------
+    rows : Sequence of dict
+        Normalized rows from one registered source table.
+
+    Returns
+    -------
+    list of dict
+        Rows with membership origins set to ``"reported"`` or
+        ``"same_star"`` where applicable.
+    """
+    fields = ("membership_probability", "membership_flag")
+    values_by_star: dict[tuple[str, str], dict[str, set[Any]]] = {}
+
+    for row in rows:
+        object_key = str(row.get("object_key") or "").strip()
+        star_id = str(row.get("star_id") or "").strip()
+        if not object_key or not star_id:
+            continue
+        grouped_values = values_by_star.setdefault(
+            (object_key, star_id),
+            {field: set() for field in fields},
+        )
+        for field in fields:
+            value = row.get(field)
+            if not is_missing(value):
+                grouped_values[field].add(value)
+
+    output = list(rows)
+    for row in output:
+        object_key = str(row.get("object_key") or "").strip()
+        star_id = str(row.get("star_id") or "").strip()
+        grouped_values = values_by_star.get((object_key, star_id), {})
+        for field in fields:
+            origin_field = f"{field}_origin"
+            value = row.get(field)
+            if not is_missing(value):
+                row[origin_field] = "reported"
+                continue
+            candidates = grouped_values.get(field, set())
+            if len(candidates) == 1:
+                row[field] = next(iter(candidates))
+                row[origin_field] = "same_star"
+            else:
+                row[origin_field] = None
+    return output
 
 
 def row_matches_filters(

@@ -29,7 +29,7 @@ We are building a researcher-friendly web application under `web/` (Next.js) and
 - Build-time VizieR/SIMBAD caches.
 - Source-normalized member-kinematics records with per-object provenance,
   chunked loading, a line-of-sight velocity histogram, selectable-axis
-  diagnostics, and CSV export.
+  diagnostics, membership-value origins, and CSV export.
 
 ### Local dev
 
@@ -137,4 +137,3 @@ The BibTeX of the citation is available below and on [ADS](https://ui.adsabs.har
         adsurl = {https://ui.adsabs.harvard.edu/abs/2025OJAp....8E.142P},
         adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
-

@@ -43,11 +43,17 @@ npm run refresh:simbad:retry-bad
   checksums, semantics, and chunk metadata.
 - Kinematics chunks contain at most 1,000 public normalized records. Raw
   provider payloads and `original_row_json` are excluded.
+- Membership values expose `reported`, `same_star`, and `seed_source` origins.
+  Source provenance shows both coverage and the number of same-star inherited
+  values; blanks remain unknown rather than being converted to non-members.
 - `src/generated/datasets_summary.ts` and
   `src/generated/kinematics_summary.ts` contain only route metadata.
 - Object diagnostics include the proper-motion plane, an automatically binned
   line-of-sight velocity histogram, and a selectable-axis scatter plot. They
   describe loaded records rather than a de-duplicated stellar sample.
+- Object-list coverage counts require actual finite `vlos`, pmRA, and pmDec
+  values; a row is not counted merely because its source is categorized as
+  spectroscopy or proper motion.
 
 ## Deployment Notes
 

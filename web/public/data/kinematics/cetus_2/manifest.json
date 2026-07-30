@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "objectKey": "cetus_2",
   "objectName": "Cetus II",
-  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
-  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
-  "publicDataSha256": "cb155f36608e0de69152a63818f2d90b8a5c9f5bb644d96d7453445e2f63b80b",
+  "sourceInputSha256": "6c99b241bce399475f0b5eab046b96a5f9a6202c4b458c8313fb8a9d4b8041a8",
+  "sourceSnapshotModifiedAt": "2026-07-30T15:04:36.135Z",
+  "publicDataSha256": "2ebc6b7bc248305e7af5c08203edb969cd02eda5537c33568671a30b018de74c",
   "columns": [
     "object_key",
     "object_name",
@@ -25,7 +25,9 @@
     "pmdec_masyr",
     "pmdec_err_masyr",
     "membership_probability",
+    "membership_probability_origin",
     "membership_flag",
+    "membership_flag_origin",
     "feh",
     "feh_err"
   ],
@@ -39,8 +41,8 @@
       "sourceProvider": "gaia_tap",
       "sourceName": "gaia_dr3_source",
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
-      "sha256": "e5dcc9f258e795c5d65f7b2ae4ddd9c996af8d6af057f3713f90a152e4c65435",
-      "bytes": 3476
+      "sha256": "86fff8f50bf888a1e2e9e59699b3bada522f11930c5990044f1d70af2c44f8f8",
+      "bytes": 3903
     },
     {
       "path": "/data/kinematics/cetus_2/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
@@ -49,8 +51,8 @@
       "sourceProvider": "zenodo_zip",
       "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
       "sourceRef": "Pace2022ApJ...940..136P",
-      "sha256": "e0cc3547a3f39dc88d9f294b0dbe04303dd9886f317ba410dd0e095711ed4d0b",
-      "bytes": 3737
+      "sha256": "a08dca984d74205c0556f73fa7f0077b48747753045a077076a0fe4a8d464c74",
+      "bytes": 4149
     }
   ],
   "sources": [
@@ -61,7 +63,14 @@
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
       "sourceTable": "gaiadr3.gaia_source",
       "sourceUrl": "https://gea.esac.esa.int/archive/",
-      "recordCount": 5
+      "recordCount": 5,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 5,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 5,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "proper_motion",
@@ -70,11 +79,18 @@
       "sourceRef": "Pace2022ApJ...940..136P",
       "sourceTable": "zenodo_14732612_share_v2_catalogs",
       "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
-      "recordCount": 5
+      "recordCount": 5,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 5,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 5,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     }
   ],
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
-    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+    "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
   }
 }

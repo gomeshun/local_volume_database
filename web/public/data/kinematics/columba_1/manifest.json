@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "objectKey": "columba_1",
   "objectName": "Columba I",
-  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
-  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
-  "publicDataSha256": "0fe95a345daa64473bb623608d674231f1718c06e554fd86d8f30c3b209cf399",
+  "sourceInputSha256": "6c99b241bce399475f0b5eab046b96a5f9a6202c4b458c8313fb8a9d4b8041a8",
+  "sourceSnapshotModifiedAt": "2026-07-30T15:04:36.135Z",
+  "publicDataSha256": "16b9b125ab4415407c866b9cd79361b248930d46951f62b683c110918b6855c1",
   "columns": [
     "object_key",
     "object_name",
@@ -25,7 +25,9 @@
     "pmdec_masyr",
     "pmdec_err_masyr",
     "membership_probability",
+    "membership_probability_origin",
     "membership_flag",
+    "membership_flag_origin",
     "feh",
     "feh_err"
   ],
@@ -39,8 +41,8 @@
       "sourceProvider": "gaia_tap",
       "sourceName": "gaia_dr3_source",
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
-      "sha256": "ce4347c5acab2d849d17a8a91b368d8ca4c78076ca244faf5af78160602eb49c",
-      "bytes": 55704
+      "sha256": "aea0fa8bada448d7f268bce78fb9bba774e78bb6e500798543d79d31dc4c66d3",
+      "bytes": 62883
     },
     {
       "path": "/data/kinematics/columba_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
@@ -49,8 +51,8 @@
       "sourceProvider": "zenodo_zip",
       "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
       "sourceRef": "Pace2022ApJ...940..136P",
-      "sha256": "e16e1f5949f57e11154e4e1c7f2b888acef98f10dadb71923e63432ef7e2b022",
-      "bytes": 5133
+      "sha256": "51f5187a7abf3dadc10233bed88f06118d180e25dad7590c121a5c84e7d02df4",
+      "bytes": 5687
     },
     {
       "path": "/data/kinematics/columba_1/spectroscopy--vizier--fritz2019_lmc_satellites--000.json",
@@ -59,8 +61,8 @@
       "sourceProvider": "vizier",
       "sourceName": "fritz2019_lmc_satellites",
       "sourceRef": "Fritz2019A&A...623A.129F",
-      "sha256": "7fca931d030ca327768839b4ed9ca1be8502aab808746c2984a111b03ecebbb7",
-      "bytes": 33814
+      "sha256": "6581135e33168b4c3396fff0f83db041d35b6e3b7766847190010ab818b24761",
+      "bytes": 37350
     },
     {
       "path": "/data/kinematics/columba_1/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--000.json",
@@ -69,8 +71,8 @@
       "sourceProvider": "aas_iop_mrt",
       "sourceName": "geha2026_deimos_expanded_aas_iop",
       "sourceRef": "Geha2026ApJ...999..140G",
-      "sha256": "c5a5988605e3be09c6aa0a7442b73ea71713594cc5d4a8b077648880fac2e7d2",
-      "bytes": 45583
+      "sha256": "f561b13ea0c73395a658a2e631e5d7d91818b987fc97c769169f47f7c05649f9",
+      "bytes": 51328
     }
   ],
   "sources": [
@@ -81,7 +83,14 @@
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
       "sourceTable": "gaiadr3.gaia_source",
       "sourceUrl": "https://gea.esac.esa.int/archive/",
-      "recordCount": 90
+      "recordCount": 90,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 81,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 90,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 42,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "proper_motion",
@@ -90,7 +99,14 @@
       "sourceRef": "Pace2022ApJ...940..136P",
       "sourceTable": "zenodo_14732612_share_v2_catalogs",
       "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
-      "recordCount": 7
+      "recordCount": 7,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 7,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 7,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "spectroscopy",
@@ -99,7 +115,14 @@
       "sourceRef": "Fritz2019A&A...623A.129F",
       "sourceTable": "J/A+A/623/A129/table2",
       "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FA%2BA%2F623%2FA129%2Ftable2&-out.max=unlimited",
-      "recordCount": 49
+      "recordCount": 49,
+      "lineOfSightVelocityRecords": 49,
+      "properMotionRecords": 43,
+      "metallicityRecords": 9,
+      "membershipProbabilityRecords": 49,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "spectroscopy",
@@ -108,11 +131,18 @@
       "sourceRef": "Geha2026ApJ...999..140G",
       "sourceTable": "apjae290dt5_mrt",
       "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
-      "recordCount": 72
+      "recordCount": 72,
+      "lineOfSightVelocityRecords": 72,
+      "properMotionRecords": 47,
+      "metallicityRecords": 12,
+      "membershipProbabilityRecords": 72,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 72,
+      "membershipFlagInheritedRecords": 0
     }
   ],
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
-    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+    "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
   }
 }

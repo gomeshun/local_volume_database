@@ -19,6 +19,13 @@ export type KinematicsSource = {
   sourceTable: string;
   sourceUrl: string;
   recordCount: number;
+  lineOfSightVelocityRecords: number;
+  properMotionRecords: number;
+  metallicityRecords: number;
+  membershipProbabilityRecords: number;
+  membershipProbabilityInheritedRecords: number;
+  membershipFlagRecords: number;
+  membershipFlagInheritedRecords: number;
 };
 
 export type KinematicsManifest = {

@@ -92,9 +92,9 @@ export default function ObjectsTable({
               <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">Object</TableHead>
               <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">Host</TableHead>
               <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">Records</TableHead>
-              <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">Spectroscopy</TableHead>
-              <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">Proper motion</TableHead>
-              <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">Gaia</TableHead>
+              <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">vlos available</TableHead>
+              <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">PM available</TableHead>
+              <TableHead className="sticky top-0 z-[1] bg-background/90 backdrop-blur">Gaia PM</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -108,9 +108,9 @@ export default function ObjectsTable({
                 <TableCell>
                   {object.totalRecords > 0 ? object.totalRecords.toLocaleString() : "Not covered"}
                 </TableCell>
-                <TableCell>{object.spectroscopyRecords.toLocaleString()}</TableCell>
-                <TableCell>{object.properMotionRecords.toLocaleString()}</TableCell>
-                <TableCell>{object.gaiaRecords.toLocaleString()}</TableCell>
+                <TableCell>{object.lineOfSightVelocityRecords.toLocaleString()}</TableCell>
+                <TableCell>{object.properMotionMeasurementRecords.toLocaleString()}</TableCell>
+                <TableCell>{object.gaiaProperMotionRecords.toLocaleString()}</TableCell>
               </TableRow>
             ))}
             {filteredObjects.length === 0 ? (

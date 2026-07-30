@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "objectKey": "eridanus_4",
   "objectName": "Eridanus IV",
-  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
-  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
-  "publicDataSha256": "7357cf91e32a37b8228ec7d84514b753966b0a5da75ef45b4dcfc93ced01bfe9",
+  "sourceInputSha256": "6c99b241bce399475f0b5eab046b96a5f9a6202c4b458c8313fb8a9d4b8041a8",
+  "sourceSnapshotModifiedAt": "2026-07-30T15:04:36.135Z",
+  "publicDataSha256": "1a1379ff9574c1131174c45527783b00bf864f1e7f5eafafba851cbd95144372",
   "columns": [
     "object_key",
     "object_name",
@@ -25,7 +25,9 @@
     "pmdec_masyr",
     "pmdec_err_masyr",
     "membership_probability",
+    "membership_probability_origin",
     "membership_flag",
+    "membership_flag_origin",
     "feh",
     "feh_err"
   ],
@@ -39,8 +41,8 @@
       "sourceProvider": "gaia_tap",
       "sourceName": "gaia_dr3_source",
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
-      "sha256": "421b571d0973e57971181c7b4d6d6cc2033b3ae3a0a7d3a48751fa800119a8a1",
-      "bytes": 36879
+      "sha256": "9c1d0dcf854bd1b34ef6c5a706180137b62d7e444640d0c6cf3f93fd540c0e14",
+      "bytes": 41456
     },
     {
       "path": "/data/kinematics/eridanus_4/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--000.json",
@@ -49,8 +51,8 @@
       "sourceProvider": "aas_iop_mrt",
       "sourceName": "geha2026_deimos_expanded_aas_iop",
       "sourceRef": "Geha2026ApJ...999..140G",
-      "sha256": "016bf09670f4d1212c87dab932d233ace7a462635072abcfb53168d2f31da85c",
-      "bytes": 23374
+      "sha256": "8c41d791602a0fa6e31258d40c8b15d268d33129bc509a535d6cde958a6cd45b",
+      "bytes": 26275
     },
     {
       "path": "/data/kinematics/eridanus_4/spectroscopy--aas_iop_mrt--heiger2024_eridanus4_aas_iop--000.json",
@@ -59,8 +61,8 @@
       "sourceProvider": "aas_iop_mrt",
       "sourceName": "heiger2024_eridanus4_aas_iop",
       "sourceRef": "Heiger2024ApJ...961..234H",
-      "sha256": "3685321f82018e047e5426b75a5922216c0f0a35d6bc5de473a5a846a2d389bd",
-      "bytes": 33725
+      "sha256": "7626bef8fec74a53962a44098941060ba8cebee8a6bda7823ef557201761d3cd",
+      "bytes": 37545
     }
   ],
   "sources": [
@@ -71,7 +73,14 @@
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
       "sourceTable": "gaiadr3.gaia_source",
       "sourceUrl": "https://gea.esac.esa.int/archive/",
-      "recordCount": 59
+      "recordCount": 59,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 54,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 14,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 59,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "spectroscopy",
@@ -80,7 +89,14 @@
       "sourceRef": "Geha2026ApJ...999..140G",
       "sourceTable": "apjae290dt5_mrt",
       "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
-      "recordCount": 36
+      "recordCount": 36,
+      "lineOfSightVelocityRecords": 36,
+      "properMotionRecords": 21,
+      "metallicityRecords": 19,
+      "membershipProbabilityRecords": 36,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 36,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "spectroscopy",
@@ -89,11 +105,18 @@
       "sourceRef": "Heiger2024ApJ...961..234H",
       "sourceTable": "apjad0cf7t3_mrt",
       "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/961/2/234/revision1/apjad0cf7t3_mrt.txt",
-      "recordCount": 53
+      "recordCount": 53,
+      "lineOfSightVelocityRecords": 53,
+      "properMotionRecords": 45,
+      "metallicityRecords": 16,
+      "membershipProbabilityRecords": 0,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 53,
+      "membershipFlagInheritedRecords": 0
     }
   ],
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
-    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+    "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
   }
 }

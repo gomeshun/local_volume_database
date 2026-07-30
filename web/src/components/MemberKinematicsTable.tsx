@@ -35,7 +35,9 @@ const PREFERRED_COLUMNS = [
   "pmdec_masyr",
   "pmdec_err_masyr",
   "membership_probability",
+  "membership_probability_origin",
   "membership_flag",
+  "membership_flag_origin",
   "feh",
   "feh_err",
   "ra_deg",
@@ -88,7 +90,12 @@ function compareValues(left: string, right: string, direction: SortDirection): n
 }
 
 function renderCell(column: string, raw: string) {
-  if (!raw) return <span className="text-muted-foreground">-</span>;
+  if (!raw) {
+    if (column === "membership_probability" || column === "membership_flag") {
+      return <span className="text-muted-foreground">not reported</span>;
+    }
+    return <span className="text-muted-foreground">-</span>;
+  }
 
   if (column === "source_ref") {
     const bibcode = bibcodeFromRefValue(raw);
@@ -167,9 +174,16 @@ export function MemberKinematicsTable({
     return rows.filter((row) => {
       const membershipProbability = numericValue(row.membership_probability);
       if (
-        membershipFilter === "reported" &&
+        membershipFilter === "available" &&
         membershipProbability === null &&
         !String(row.membership_flag ?? "").trim()
+      ) {
+        return false;
+      }
+      if (
+        membershipFilter === "source-reported" &&
+        row.membership_probability_origin !== "reported" &&
+        row.membership_flag_origin !== "reported"
       ) {
         return false;
       }
@@ -248,7 +262,8 @@ export function MemberKinematicsTable({
             </SelectTrigger>
             <SelectContent align="end">
               <SelectItem value="all">All membership</SelectItem>
-              <SelectItem value="reported">Reported only</SelectItem>
+              <SelectItem value="available">Any membership value</SelectItem>
+              <SelectItem value="source-reported">Reported on source row</SelectItem>
               <SelectItem value="probability-0.5">P ≥ 0.5</SelectItem>
               <SelectItem value="probability-0.9">P ≥ 0.9</SelectItem>
             </SelectContent>

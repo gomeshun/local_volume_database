@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "objectKey": "tucana_5",
   "objectName": "Tucana V",
-  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
-  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
-  "publicDataSha256": "dba97335e0cea7592e291e9b4662dd64fe7b929f2317e044ce0e0ee70196e6c8",
+  "sourceInputSha256": "6c99b241bce399475f0b5eab046b96a5f9a6202c4b458c8313fb8a9d4b8041a8",
+  "sourceSnapshotModifiedAt": "2026-07-30T15:04:36.135Z",
+  "publicDataSha256": "5ba60eb522e29e6600ea2118cf526ca6912ad9f71c17310050279ab12f1c6971",
   "columns": [
     "object_key",
     "object_name",
@@ -25,7 +25,9 @@
     "pmdec_masyr",
     "pmdec_err_masyr",
     "membership_probability",
+    "membership_probability_origin",
     "membership_flag",
+    "membership_flag_origin",
     "feh",
     "feh_err"
   ],
@@ -39,8 +41,8 @@
       "sourceProvider": "vizier",
       "sourceName": "battaglia2022_tucana5_pmem",
       "sourceRef": "Battaglia2022A&A...657A..54B",
-      "sha256": "20d7fa43038530620ed1eb467921dd21217c0d05dc3677f4e88fcb06156eca31",
-      "bytes": 98660
+      "sha256": "203dc13959baa8a422e4a034a87cf35c244601faeddb126e146781f26d86e27d",
+      "bytes": 109367
     },
     {
       "path": "/data/kinematics/tucana_5/proper_motion--gaia_tap--gaia_dr3_source--000.json",
@@ -49,8 +51,8 @@
       "sourceProvider": "gaia_tap",
       "sourceName": "gaia_dr3_source",
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
-      "sha256": "8e67cb7cbcd10b1b09aa85fa06d743655e73baa0adfb6a78ceb42d5177c6f49f",
-      "bytes": 94827
+      "sha256": "8a05a57f5442018b79c2f16c726b3a3344c443875177683a6809f426f792d174",
+      "bytes": 105984
     },
     {
       "path": "/data/kinematics/tucana_5/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
@@ -59,8 +61,8 @@
       "sourceProvider": "zenodo_zip",
       "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
       "sourceRef": "Pace2022ApJ...940..136P",
-      "sha256": "54e7ace1a89a91f011058fa9b5189ab68c885fd5634bd5d6a8ee45eb2c84a2b8",
-      "bytes": 5118
+      "sha256": "441c7858275ff15c998e474338e52dad606fc2d8a73ecf7b878563076a941a58",
+      "bytes": 5672
     },
     {
       "path": "/data/kinematics/tucana_5/spectroscopy--vizier--simon2020_table3--000.json",
@@ -69,8 +71,8 @@
       "sourceProvider": "vizier",
       "sourceName": "simon2020_table3",
       "sourceRef": "Simon2020ApJ...892..137S",
-      "sha256": "2790a2472e70a947a76bb700a45df926505e91240819c065989b96ac4ef759db",
-      "bytes": 36404
+      "sha256": "3b95143ace9197955a36b2055b29f074d9f5eb33eca4a565d721b433a83c8155",
+      "bytes": 40508
     }
   ],
   "sources": [
@@ -81,7 +83,14 @@
       "sourceRef": "Battaglia2022A&A...657A..54B",
       "sourceTable": "J/A+A/657/A54/pmem",
       "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FA%2BA%2F657%2FA54%2Fpmem&-out.max=unlimited&Galaxy=TucanaV",
-      "recordCount": 150
+      "recordCount": 150,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 0,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 150,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "proper_motion",
@@ -90,7 +99,14 @@
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
       "sourceTable": "gaiadr3.gaia_source",
       "sourceUrl": "https://gea.esac.esa.int/archive/",
-      "recordCount": 150
+      "recordCount": 150,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 150,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 150,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "proper_motion",
@@ -99,7 +115,14 @@
       "sourceRef": "Pace2022ApJ...940..136P",
       "sourceTable": "zenodo_14732612_share_v2_catalogs",
       "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
-      "recordCount": 7
+      "recordCount": 7,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 7,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 7,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "spectroscopy",
@@ -108,11 +131,18 @@
       "sourceRef": "Simon2020ApJ...892..137S",
       "sourceTable": "J/ApJ/892/137/table3",
       "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FApJ%2F892%2F137%2Ftable3&-out.max=unlimited",
-      "recordCount": 57
+      "recordCount": 57,
+      "lineOfSightVelocityRecords": 57,
+      "properMotionRecords": 0,
+      "metallicityRecords": 4,
+      "membershipProbabilityRecords": 0,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 57,
+      "membershipFlagInheritedRecords": 0
     }
   ],
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
-    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+    "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
   }
 }

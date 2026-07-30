@@ -345,13 +345,16 @@ export default function ObjectKinematicsClient({
           <div className="font-medium">{formatValue(object.host)}</div>
         </div>
         <div>
-          <div className="text-muted-foreground">Spectroscopy</div>
-          <div className="font-medium">{object.spectroscopyRecords.toLocaleString()}</div>
+          <div className="text-muted-foreground">vlos available</div>
+          <div className="font-medium">
+            {object.lineOfSightVelocityRecords.toLocaleString()}
+          </div>
         </div>
         <div>
-          <div className="text-muted-foreground">Proper motion</div>
+          <div className="text-muted-foreground">PM available</div>
           <div className="font-medium">
-            {object.properMotionRecords.toLocaleString()} ({object.gaiaRecords.toLocaleString()} Gaia)
+            {object.properMotionMeasurementRecords.toLocaleString()} (
+            {object.gaiaProperMotionRecords.toLocaleString()} Gaia)
           </div>
         </div>
       </div>
@@ -477,6 +480,8 @@ export default function ObjectKinematicsClient({
                       <TableHead>Kind</TableHead>
                       <TableHead>Provider</TableHead>
                       <TableHead>Records</TableHead>
+                      <TableHead>Value coverage</TableHead>
+                      <TableHead>Membership coverage</TableHead>
                       <TableHead>Reference</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -493,6 +498,35 @@ export default function ObjectKinematicsClient({
                           <TableCell>{source.sourceKind}</TableCell>
                           <TableCell>{source.sourceProvider}</TableCell>
                           <TableCell>{source.recordCount.toLocaleString()}</TableCell>
+                          <TableCell className="whitespace-nowrap text-xs">
+                            <div>
+                              vlos: {source.lineOfSightVelocityRecords.toLocaleString()} /{" "}
+                              {source.recordCount.toLocaleString()}
+                            </div>
+                            <div className="text-muted-foreground">
+                              PM: {source.properMotionRecords.toLocaleString()} /{" "}
+                              {source.recordCount.toLocaleString()} · [Fe/H]:{" "}
+                              {source.metallicityRecords.toLocaleString()} /{" "}
+                              {source.recordCount.toLocaleString()}
+                            </div>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-xs">
+                            <div>
+                              Flag: {source.membershipFlagRecords.toLocaleString()} /{" "}
+                              {source.recordCount.toLocaleString()}
+                              {source.membershipFlagInheritedRecords > 0
+                                ? ` (${source.membershipFlagInheritedRecords.toLocaleString()} same-star)`
+                                : ""}
+                            </div>
+                            <div className="text-muted-foreground">
+                              Probability:{" "}
+                              {source.membershipProbabilityRecords.toLocaleString()} /{" "}
+                              {source.recordCount.toLocaleString()}
+                              {source.membershipProbabilityInheritedRecords > 0
+                                ? ` (${source.membershipProbabilityInheritedRecords.toLocaleString()} same-star)`
+                                : ""}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             {bibcode ? (
                               <a

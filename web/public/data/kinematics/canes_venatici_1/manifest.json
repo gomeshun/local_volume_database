@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "objectKey": "canes_venatici_1",
   "objectName": "Canes Venatici I",
-  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
-  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
-  "publicDataSha256": "8c3d74117cb9a23bd84d6fdd33b7ed8eeffea39ff2ad9c6659b39b9e6bd3c9af",
+  "sourceInputSha256": "6c99b241bce399475f0b5eab046b96a5f9a6202c4b458c8313fb8a9d4b8041a8",
+  "sourceSnapshotModifiedAt": "2026-07-30T15:04:36.135Z",
+  "publicDataSha256": "07c0415b1e768a99273e4b7918c39e002f6e54eca7abeab3999b66a57aa85e35",
   "columns": [
     "object_key",
     "object_name",
@@ -25,7 +25,9 @@
     "pmdec_masyr",
     "pmdec_err_masyr",
     "membership_probability",
+    "membership_probability_origin",
     "membership_flag",
+    "membership_flag_origin",
     "feh",
     "feh_err"
   ],
@@ -39,8 +41,8 @@
       "sourceProvider": "gaia_tap",
       "sourceName": "gaia_dr3_source",
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
-      "sha256": "0d03bc61fb3c3516d83cb286bd849e921a91d10dd37b9edac1d6a63f99a8e10f",
-      "bytes": 137237
+      "sha256": "9bb725d0318cb4f375b6eac2d0fb66e3641e6da82648bbf514676b69c904a7fc",
+      "bytes": 154719
     },
     {
       "path": "/data/kinematics/canes_venatici_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
@@ -49,8 +51,8 @@
       "sourceProvider": "zenodo_zip",
       "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
       "sourceRef": "Pace2022ApJ...940..136P",
-      "sha256": "56dd6296551034ac2ea08d140374af801e0ef3d0ca1e6c6067fcc5226c09a7fd",
-      "bytes": 95828
+      "sha256": "445148fd86b0a886f8ebaf21b34e8baa825e8631cbeed006b7fdaeae264d2805",
+      "bytes": 105683
     },
     {
       "path": "/data/kinematics/canes_venatici_1/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--000.json",
@@ -59,8 +61,8 @@
       "sourceProvider": "aas_iop_mrt",
       "sourceName": "geha2026_deimos_expanded_aas_iop",
       "sourceRef": "Geha2026ApJ...999..140G",
-      "sha256": "ef0969bbb72a985d22fc77c891b518bad1a09f6e6bfedbcab113f8a15b12ff93",
-      "bytes": 235099
+      "sha256": "4a5c9637568d0f7c88a9e997bb43785b6357ddb545bb1869c02971b15b0e4687",
+      "bytes": 264149
     }
   ],
   "sources": [
@@ -71,7 +73,14 @@
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
       "sourceTable": "gaiadr3.gaia_source",
       "sourceUrl": "https://gea.esac.esa.int/archive/",
-      "recordCount": 216
+      "recordCount": 216,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 195,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 216,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 131,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "proper_motion",
@@ -80,7 +89,14 @@
       "sourceRef": "Pace2022ApJ...940..136P",
       "sourceTable": "zenodo_14732612_share_v2_catalogs",
       "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
-      "recordCount": 138
+      "recordCount": 138,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 138,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 138,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "spectroscopy",
@@ -89,11 +105,18 @@
       "sourceRef": "Geha2026ApJ...999..140G",
       "sourceTable": "apjae290dt5_mrt",
       "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
-      "recordCount": 367
+      "recordCount": 367,
+      "lineOfSightVelocityRecords": 367,
+      "properMotionRecords": 110,
+      "metallicityRecords": 234,
+      "membershipProbabilityRecords": 367,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 367,
+      "membershipFlagInheritedRecords": 0
     }
   ],
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
-    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+    "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
   }
 }

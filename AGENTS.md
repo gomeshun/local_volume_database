@@ -39,6 +39,8 @@ AGENTS.mdは、コーディングエージェント用のドキュメントで�
 - `web/scripts/generate-kinematics.mjs`
 	- `data_kinematics/processed/dwarf_mw_kinematics.csv` から公開可能な正規化列だけを抽出。
 	- 天体・sourceごとに最大1,000レコードのJSONへ分割し、raw payloadと `original_row_json` は公開しない。
+	- membershipの由来は `reported` / `same_star` / `seed_source` で公開し、空欄をnon-memberへ変換しない。
+	- 一覧のvlos/PM件数はsource種別ではなく、実際に有限値が存在するレコードだけを数える。
 	- 出力: `web/src/generated/kinematics_summary.ts`, `web/public/data/kinematics/<object>/`
 
 ### UI/機能の要点（実装からの抜粋）

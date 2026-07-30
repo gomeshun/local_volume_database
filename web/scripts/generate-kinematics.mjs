@@ -27,7 +27,9 @@ const PUBLIC_KINEMATICS_COLUMNS = [
   "pmdec_masyr",
   "pmdec_err_masyr",
   "membership_probability",
+  "membership_probability_origin",
   "membership_flag",
+  "membership_flag_origin",
   "feh",
   "feh_err",
 ];
@@ -94,6 +96,11 @@ function numericString(value) {
   return Number.isFinite(numberValue) ? String(numberValue) : "";
 }
 
+function hasFiniteNumber(value) {
+  if (String(value ?? "").trim() === "") return false;
+  return Number.isFinite(Number(value));
+}
+
 function sanitizeRow(row) {
   return Object.fromEntries(
     PUBLIC_KINEMATICS_COLUMNS.map((column) => [column, String(row[column] ?? "")]),
@@ -125,6 +132,18 @@ function aggregateSources(rows) {
     const existing = bySource.get(key);
     if (existing) {
       existing.recordCount += 1;
+      existing.lineOfSightVelocityRecords += hasFiniteNumber(row.vlos_kms) ? 1 : 0;
+      existing.properMotionRecords +=
+        hasFiniteNumber(row.pmra_masyr) && hasFiniteNumber(row.pmdec_masyr)
+          ? 1
+          : 0;
+      existing.metallicityRecords += hasFiniteNumber(row.feh) ? 1 : 0;
+      existing.membershipProbabilityRecords += row.membership_probability ? 1 : 0;
+      existing.membershipProbabilityInheritedRecords +=
+        row.membership_probability_origin === "same_star" ? 1 : 0;
+      existing.membershipFlagRecords += row.membership_flag ? 1 : 0;
+      existing.membershipFlagInheritedRecords +=
+        row.membership_flag_origin === "same_star" ? 1 : 0;
       continue;
     }
     bySource.set(key, {
@@ -135,6 +154,18 @@ function aggregateSources(rows) {
       sourceTable: row.source_table,
       sourceUrl: row.source_url,
       recordCount: 1,
+      lineOfSightVelocityRecords: hasFiniteNumber(row.vlos_kms) ? 1 : 0,
+      properMotionRecords:
+        hasFiniteNumber(row.pmra_masyr) && hasFiniteNumber(row.pmdec_masyr)
+          ? 1
+          : 0,
+      metallicityRecords: hasFiniteNumber(row.feh) ? 1 : 0,
+      membershipProbabilityRecords: row.membership_probability ? 1 : 0,
+      membershipProbabilityInheritedRecords:
+        row.membership_probability_origin === "same_star" ? 1 : 0,
+      membershipFlagRecords: row.membership_flag ? 1 : 0,
+      membershipFlagInheritedRecords:
+        row.membership_flag_origin === "same_star" ? 1 : 0,
     });
   }
   return Array.from(bySource.values()).sort((left, right) =>
@@ -168,7 +199,7 @@ async function writeObjectData(object, rows, inputSha256, sourceSnapshotModified
       const fileName = `${safeSegment(source.sourceKind)}--${safeSegment(source.sourceProvider)}--${safeSegment(source.sourceName)}--${String(page).padStart(3, "0")}.json`;
       const relativePath = `/data/kinematics/${object.key}/${fileName}`;
       const payload = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         objectKey: object.key,
         columns: PUBLIC_KINEMATICS_COLUMNS,
         rows: chunkRows,
@@ -190,7 +221,7 @@ async function writeObjectData(object, rows, inputSha256, sourceSnapshotModified
 
   const publicRowsSerialized = JSON.stringify(writtenRows);
   const manifest = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     objectKey: object.key,
     objectName: object.name,
     sourceInputSha256: inputSha256,
@@ -205,7 +236,7 @@ async function writeObjectData(object, rows, inputSha256, sourceSnapshotModified
       recordUnit:
         "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
       membership:
-        "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source.",
+        "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification.",
     },
   };
   const manifestText = `${JSON.stringify(manifest, null, 2)}\n`;
@@ -305,9 +336,19 @@ async function main() {
       refVlos: dwarf.ref_vlos ?? "",
       refProperMotion: dwarf.ref_proper_motion ?? "",
       totalRecords: rows.length,
-      spectroscopyRecords: rows.filter((row) => row.source_kind === "spectroscopy").length,
-      properMotionRecords: rows.filter((row) => row.source_kind === "proper_motion").length,
-      gaiaRecords: rows.filter((row) => row.source_provider === "gaia_tap").length,
+      lineOfSightVelocityRecords: rows.filter((row) =>
+        hasFiniteNumber(row.vlos_kms),
+      ).length,
+      properMotionMeasurementRecords: rows.filter(
+        (row) =>
+          hasFiniteNumber(row.pmra_masyr) && hasFiniteNumber(row.pmdec_masyr),
+      ).length,
+      gaiaProperMotionRecords: rows.filter(
+        (row) =>
+          row.source_provider === "gaia_tap" &&
+          hasFiniteNumber(row.pmra_masyr) &&
+          hasFiniteNumber(row.pmdec_masyr),
+      ).length,
       ...generated,
     });
   }
@@ -316,7 +357,7 @@ async function main() {
     "// THIS FILE IS AUTO-GENERATED. DO NOT EDIT BY HAND.",
     "// Generated by scripts/generate-kinematics.mjs",
     "",
-    "export type KinematicObjectSummary = { key: string; name: string; ra: string; dec: string; distance: string; host: string; refVlos: string; refProperMotion: string; totalRecords: number; spectroscopyRecords: number; properMotionRecords: number; gaiaRecords: number; manifestPath: string; dataSha256: string; sourceCount: number; chunkCount: number; publicBytes: number };",
+    "export type KinematicObjectSummary = { key: string; name: string; ra: string; dec: string; distance: string; host: string; refVlos: string; refProperMotion: string; totalRecords: number; lineOfSightVelocityRecords: number; properMotionMeasurementRecords: number; gaiaProperMotionRecords: number; manifestPath: string; dataSha256: string; sourceCount: number; chunkCount: number; publicBytes: number };",
     "",
     `export const kinematicObjectSummaries: KinematicObjectSummary[] = ${JSON.stringify(summaries, null, 2)};`,
     "",

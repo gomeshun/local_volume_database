@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "objectKey": "smc",
   "objectName": "SMC",
-  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
-  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
-  "publicDataSha256": "a719cc1beb8f6a7aa07214e9b892fb1f4c77ea0b092a84494f87f8553be959f6",
+  "sourceInputSha256": "6c99b241bce399475f0b5eab046b96a5f9a6202c4b458c8313fb8a9d4b8041a8",
+  "sourceSnapshotModifiedAt": "2026-07-30T15:04:36.135Z",
+  "publicDataSha256": "e21d06382cd44c64829268c0833914f511dd5a4135ca2e4ae637712d5414dc5e",
   "columns": [
     "object_key",
     "object_name",
@@ -25,7 +25,9 @@
     "pmdec_masyr",
     "pmdec_err_masyr",
     "membership_probability",
+    "membership_probability_origin",
     "membership_flag",
+    "membership_flag_origin",
     "feh",
     "feh_err"
   ],
@@ -39,8 +41,8 @@
       "sourceProvider": "vizier",
       "sourceName": "harris2006_smc_red_giants",
       "sourceRef": "Harris2006AJ....131.2514H",
-      "sha256": "d7c08b758f8c913721c5eeb74fa1454189fcef99959ce467dd8eaf647d477b83",
-      "bytes": 616201
+      "sha256": "fe989ccd2f8ce6b9ff3b3a27b2754bab5bc40bddcddb3a1a25a4c6ed9f08e881",
+      "bytes": 679258
     },
     {
       "path": "/data/kinematics/smc/spectroscopy--vizier--harris2006_smc_red_giants--001.json",
@@ -49,8 +51,8 @@
       "sourceProvider": "vizier",
       "sourceName": "harris2006_smc_red_giants",
       "sourceRef": "Harris2006AJ....131.2514H",
-      "sha256": "1d811a0ef55470c1bcf5b87a40ad35f53dad89fce38fac8a9927bf3eace7f82a",
-      "bytes": 616709
+      "sha256": "33a256a9212f327f768a8dc1df318d0ae1cc80c232688b68610cae59c1cb92f9",
+      "bytes": 679766
     },
     {
       "path": "/data/kinematics/smc/spectroscopy--vizier--harris2006_smc_red_giants--002.json",
@@ -59,8 +61,8 @@
       "sourceProvider": "vizier",
       "sourceName": "harris2006_smc_red_giants",
       "sourceRef": "Harris2006AJ....131.2514H",
-      "sha256": "791120f73b796efc8207254e1a94d84aef3c46b2dca078ffedf712544c490791",
-      "bytes": 49119
+      "sha256": "a7182dd5c0d305136c3bb8add29a3b9fe492e42a350ea1ee32d195c223cd9266",
+      "bytes": 54441
     }
   ],
   "sources": [
@@ -71,11 +73,18 @@
       "sourceRef": "Harris2006AJ....131.2514H",
       "sourceTable": "J/AJ/131/2514/table2",
       "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FAJ%2F131%2F2514%2Ftable2&-out.max=unlimited",
-      "recordCount": 2079
+      "recordCount": 2079,
+      "lineOfSightVelocityRecords": 2079,
+      "properMotionRecords": 0,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 0,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 36,
+      "membershipFlagInheritedRecords": 0
     }
   ],
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
-    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+    "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
   }
 }

@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "objectKey": "carina_1",
   "objectName": "Carina",
-  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
-  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
-  "publicDataSha256": "ceedd63e19a8213dd292ade033368a2cfe4d84fb139a3199eef18e9e8a8d0fe8",
+  "sourceInputSha256": "6c99b241bce399475f0b5eab046b96a5f9a6202c4b458c8313fb8a9d4b8041a8",
+  "sourceSnapshotModifiedAt": "2026-07-30T15:04:36.135Z",
+  "publicDataSha256": "f6d5ec2f7cceee5e9d2f9795c2a8c32631eca1c8211ee2e6c311d7e55ffb6e0f",
   "columns": [
     "object_key",
     "object_name",
@@ -25,7 +25,9 @@
     "pmdec_masyr",
     "pmdec_err_masyr",
     "membership_probability",
+    "membership_probability_origin",
     "membership_flag",
+    "membership_flag_origin",
     "feh",
     "feh_err"
   ],
@@ -39,8 +41,8 @@
       "sourceProvider": "gaia_tap",
       "sourceName": "gaia_dr3_source",
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
-      "sha256": "65f89f69cb846d5062ffa4923e66a28c541582cf859d7efe8a201a12e87ddf4f",
-      "bytes": 622940
+      "sha256": "0aa015e5c78877385fc12eeb51e56a56755db1561091ab423dc0f80c40fe4d8e",
+      "bytes": 696997
     },
     {
       "path": "/data/kinematics/carina_1/proper_motion--gaia_tap--gaia_dr3_source--001.json",
@@ -49,8 +51,8 @@
       "sourceProvider": "gaia_tap",
       "sourceName": "gaia_dr3_source",
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
-      "sha256": "edb038c5776b730aebbd98beb27623c01ab583bf0f342cdaa865bcf2600ad715",
-      "bytes": 623016
+      "sha256": "08b3806152204149222cfebd9071416e341710dd64640b58b60fdaa66a775eee",
+      "bytes": 697073
     },
     {
       "path": "/data/kinematics/carina_1/proper_motion--gaia_tap--gaia_dr3_source--002.json",
@@ -59,8 +61,8 @@
       "sourceProvider": "gaia_tap",
       "sourceName": "gaia_dr3_source",
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
-      "sha256": "9b5741dd283dc5447dfdd22349b12a9619bf3a931a04c1f17efaf2fa0f9a51a1",
-      "bytes": 320412
+      "sha256": "94afd7b130aed37beee05624afe8a83a102dcb466010a446f333d7a9205fc4b0",
+      "bytes": 358505
     },
     {
       "path": "/data/kinematics/carina_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
@@ -69,8 +71,8 @@
       "sourceProvider": "zenodo_zip",
       "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
       "sourceRef": "Pace2022ApJ...940..136P",
-      "sha256": "b9e5fe5df897ddb2d69d4bcc7484efcfa76f000a28f56561c2d2eb293c6c2627",
-      "bytes": 674950
+      "sha256": "bbcf7a3b4be3f8c37758723b6c042e754fc782a90e283ad45fd131e38f3de8a5",
+      "bytes": 746007
     },
     {
       "path": "/data/kinematics/carina_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--001.json",
@@ -79,8 +81,8 @@
       "sourceProvider": "zenodo_zip",
       "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
       "sourceRef": "Pace2022ApJ...940..136P",
-      "sha256": "e0d57a2cab51054976195bf4f59c5b7724db33df8a0cb3762aaf4a1b220915f6",
-      "bytes": 675036
+      "sha256": "6702ebe540ac4101cc175411258c111ddc62f341ff14308a36b830f84be63d1c",
+      "bytes": 746093
     },
     {
       "path": "/data/kinematics/carina_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--002.json",
@@ -89,8 +91,8 @@
       "sourceProvider": "zenodo_zip",
       "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
       "sourceRef": "Pace2022ApJ...940..136P",
-      "sha256": "b11215157c8d2ca7080c441cbd2a5086a8f960baa0ecc6f9cecd8a85944fb1c5",
-      "bytes": 347168
+      "sha256": "657d78fd6eb8beceeb61e1ad00654919f5e339024bd4b64a0a8b99ea32031806",
+      "bytes": 383719
     },
     {
       "path": "/data/kinematics/carina_1/spectroscopy--vizier--walker2009_stars--000.json",
@@ -99,8 +101,8 @@
       "sourceProvider": "vizier",
       "sourceName": "walker2009_stars",
       "sourceRef": "Walker2009AJ....137.3100W",
-      "sha256": "1311c4e3bfbe6c6241899072c0a7c6ead88ed9d908cfd41ad24b7670aa823737",
-      "bytes": 608828
+      "sha256": "97393b6c1f130de1368e8f8549c6b1288bdd882384ede684fcfe04fcec30e495",
+      "bytes": 679885
     },
     {
       "path": "/data/kinematics/carina_1/spectroscopy--vizier--walker2009_stars--001.json",
@@ -109,8 +111,8 @@
       "sourceProvider": "vizier",
       "sourceName": "walker2009_stars",
       "sourceRef": "Walker2009AJ....137.3100W",
-      "sha256": "0f3f55b4f8644dcfa4dc915829af55c9f3258642545dff1871f1266c782751a4",
-      "bytes": 598878
+      "sha256": "1ff9c39d84d87dc4f8cd7f54236583e7347c7f61e2ac2193180b09dab17f8574",
+      "bytes": 668657
     }
   ],
   "sources": [
@@ -121,7 +123,14 @@
       "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
       "sourceTable": "gaiadr3.gaia_source",
       "sourceUrl": "https://gea.esac.esa.int/archive/",
-      "recordCount": 2514
+      "recordCount": 2514,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 2514,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 2514,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "proper_motion",
@@ -130,7 +139,14 @@
       "sourceRef": "Pace2022ApJ...940..136P",
       "sourceTable": "zenodo_14732612_share_v2_catalogs",
       "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
-      "recordCount": 2514
+      "recordCount": 2514,
+      "lineOfSightVelocityRecords": 0,
+      "properMotionRecords": 2514,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 2514,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     },
     {
       "sourceKind": "spectroscopy",
@@ -139,11 +155,18 @@
       "sourceRef": "Walker2009AJ....137.3100W",
       "sourceTable": "J/AJ/137/3100/stars",
       "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FAJ%2F137%2F3100%2Fstars&-out.max=unlimited",
-      "recordCount": 1982
+      "recordCount": 1982,
+      "lineOfSightVelocityRecords": 1982,
+      "properMotionRecords": 0,
+      "metallicityRecords": 0,
+      "membershipProbabilityRecords": 1982,
+      "membershipProbabilityInheritedRecords": 0,
+      "membershipFlagRecords": 0,
+      "membershipFlagInheritedRecords": 0
     }
   ],
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
-    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+    "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
   }
 }

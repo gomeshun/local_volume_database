@@ -189,6 +189,61 @@ def test_read_commented_header_table() -> None:
     assert table["mem_fixed"][0] == 0.2
 
 
+def test_repeated_star_membership_is_propagated_with_origin() -> None:
+    """Test safe membership propagation across repeated stellar observations.
+
+    Returns
+    -------
+    None
+        Assertions verify that only unambiguous same-star values are filled and
+        that reported, inherited, conflicting, and unavailable values remain
+        distinguishable.
+    """
+    source = KinematicSource(
+        name="synthetic_repeated_membership",
+        bibcode="Test2026ApJ...999....2T",
+        source_id="synthetic",
+        source_kind="spectroscopy",
+        object_key="bootes_1",
+        columns={
+            "star_id": "star",
+            "vlos_kms": "velocity",
+            "membership_probability": "probability",
+            "membership_flag": "member",
+        },
+    )
+    table = Table(
+        rows=[
+            ("star-a", 100.0, 0.9, 1),
+            ("star-a", 101.0, 0.0, 0),
+            ("star-b", 200.0, 0.2, 0),
+            ("star-b", 201.0, 0.8, 1),
+            ("star-b", 202.0, 0.0, 0),
+            ("star-c", 300.0, 0.0, 0),
+        ],
+        names=["star", "velocity", "probability", "member"],
+        masked=True,
+    )
+    table["probability"].mask = [False, True, False, False, True, True]
+    table["member"].mask = [False, True, False, False, True, True]
+
+    dwarf_rows = load_dwarf_rows(ROOT / "data" / "dwarf_mw.csv")
+    rows = normalize_table(table, source, dwarf_rows)
+
+    assert rows[0]["membership_probability_origin"] == "reported"
+    assert rows[0]["membership_flag_origin"] == "reported"
+    assert rows[1]["membership_probability"] == 0.9
+    assert rows[1]["membership_probability_origin"] == "same_star"
+    assert rows[1]["membership_flag"] == "1"
+    assert rows[1]["membership_flag_origin"] == "same_star"
+    assert rows[4]["membership_probability"] is None
+    assert rows[4]["membership_probability_origin"] is None
+    assert rows[4]["membership_flag"] is None
+    assert rows[4]["membership_flag_origin"] is None
+    assert rows[5]["membership_probability"] is None
+    assert rows[5]["membership_flag"] is None
+
+
 def test_pace2022_zenodo_source_registered() -> None:
     """Test Pace et al. 2022 Zenodo source configuration.
 
@@ -261,6 +316,8 @@ def test_normalize_gaia_dr3_rows() -> None:
     assert rows[0]["pmra_masyr"] == 0.88
     assert rows[0]["pmdec_err_masyr"] == 0.2
     assert rows[0]["membership_flag"] == "M"
+    assert rows[0]["membership_probability_origin"] == "seed_source"
+    assert rows[0]["membership_flag_origin"] == "seed_source"
 
 
 if __name__ == "__main__":
@@ -272,6 +329,7 @@ if __name__ == "__main__":
     test_normalize_aas_iop_like_table()
     test_normalize_source_filters_and_missing_values()
     test_read_commented_header_table()
+    test_repeated_star_membership_is_propagated_with_origin()
     test_pace2022_zenodo_source_registered()
     test_extract_gaia_source_ids_from_normalized_row()
     test_normalize_gaia_dr3_rows()
