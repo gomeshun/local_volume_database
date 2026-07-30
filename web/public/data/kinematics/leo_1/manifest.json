@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "leo_1",
+  "objectName": "Leo I",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "fd9c275e3acec542952f4165bf1bb86a9483643cb3df26b657def1c832c03a34",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 3835,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/leo_1/proper_motion--gaia_tap--gaia_dr3_source--000.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "5865a40c7d22cd68cf479660889ee486162e9d3f5a10e24e7bb7d589ae11c688",
+      "bytes": 611075
+    },
+    {
+      "path": "/data/kinematics/leo_1/proper_motion--gaia_tap--gaia_dr3_source--001.json",
+      "recordCount": 398,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "3053d81cb825fb086c8f78433a1d2a6218e84013cedc55e1d70114d2ea46f3b8",
+      "bytes": 243247
+    },
+    {
+      "path": "/data/kinematics/leo_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
+      "recordCount": 936,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "2d9b38333ea06881b09551d921af9c8d89d19e3dde36f008e75866a1c56ad220",
+      "bytes": 628029
+    },
+    {
+      "path": "/data/kinematics/leo_1/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--000.json",
+      "recordCount": 1000,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sha256": "61fa5527ef7f73251c97cf74df569a49bb893cce3b873274457dfc858512b535",
+      "bytes": 628109
+    },
+    {
+      "path": "/data/kinematics/leo_1/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--001.json",
+      "recordCount": 114,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sha256": "8ea0c5082292fa95f00082361534ac0fee490d9c858668a4da44a6acdf75792a",
+      "bytes": 71637
+    },
+    {
+      "path": "/data/kinematics/leo_1/spectroscopy--vizier--mateo2008_leo1--000.json",
+      "recordCount": 387,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "mateo2008_leo1",
+      "sourceRef": "Mateo2008ApJ...675..201M",
+      "sha256": "5b927f9c9eb4afbfdc9ad3bcfc7132eacc88c936e1236f94d460f999aa476875",
+      "bytes": 232883
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sourceTable": "gaiadr3.gaia_source",
+      "sourceUrl": "https://gea.esac.esa.int/archive/",
+      "recordCount": 1398
+    },
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sourceTable": "zenodo_14732612_share_v2_catalogs",
+      "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
+      "recordCount": 936
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sourceTable": "apjae290dt5_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
+      "recordCount": 1114
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "mateo2008_leo1",
+      "sourceRef": "Mateo2008ApJ...675..201M",
+      "sourceTable": "J/ApJ/675/201/table5",
+      "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FApJ%2F675%2F201%2Ftable5&-out.max=unlimited",
+      "recordCount": 387
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}

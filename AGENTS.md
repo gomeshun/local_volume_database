@@ -4,7 +4,7 @@ AGENTS.mdは、コーディングエージェント用のドキュメントで�
 - 新規開発した Python コードでは、関数・メソッドに NumPy スタイルの docstring を書くこと。
 - Python 実行やテストは `uv` で構築した環境下で行うこと。例: `uv sync` で環境を用意し、`uv run python ...` または `uv run pytest ...` を使う。
 
-## web/ 開発作業ログまとめ（2026-02-04時点）
+## web/ 開発作業ログまとめ（2026-07-30時点）
 
 ### 目的 / 何を作っているか
 - `web/` は Next.js（App Router）で作られたフロントエンド「LVDB Explorer」。
@@ -17,28 +17,37 @@ AGENTS.mdは、コーディングエージェント用のドキュメントで�
 - `npm run prepare:data` は以下を実行:
 	- `node scripts/generate-datasets.mjs`
 	- `node scripts/generate-simbad.mjs`
-- SIMBAD 生成の再実行オプション:
-	- `npm run prepare:data:force`（`FORCE_SIMBAD=1`）
-	- `npm run prepare:data:retry-bad`（`RETRY_BAD=1`）
+	- `node scripts/generate-kinematics.mjs`
+- 通常の `prepare:data` は外部通信を行わない。外部キャッシュ更新は明示的に実行:
+	- `npm run refresh:vizier`
+	- `npm run refresh:simbad`
+	- `npm run refresh:simbad:force`
+	- `npm run refresh:simbad:retry-bad`
 
 ### データ生成（ビルド時生成物とキャッシュ）
 - `web/scripts/generate-datasets.mjs`
 	- `../data/*.csv` を走査し、除外（例: `j_factor.csv`, `pm_overview.csv`）を除いてデータセット定義を生成。
-	- 出力: `web/src/generated/datasets.ts`
-	- データ中の参照文字列から bibcode を抽出し、VizieR の ASU-TSV エンドポイントでカタログ一覧を取得。
-	- 取得結果はインクリメンタルにキャッシュし、毎回のビルドでの過剰アクセスを避ける。
+	- 出力: `web/src/generated/datasets_summary.ts`, `web/public/data/datasets/*.json`
+	- データ中の参照文字列から bibcode を抽出するが、通常生成時はVizieRへ問い合わせない。
+	- `--refresh-vizier` 時だけ不足分を取得し、インクリメンタルにキャッシュする。
 	- 出力: `web/src/generated/vizier_catalogs.json`, `web/src/generated/vizier_catalogs.ts`
 - `web/scripts/generate-simbad.mjs`
 	- `../data/*.csv` の `name`/`key` などから行ID（rowId）を作り、SIMBAD `sim-id` を VOTable で照会。
 	- 既存キャッシュを読み、同一 rowId の過去結果を別テーブル間で再利用して問い合わせ数を削減。
-	- `--force` / `--retry-bad`（または環境変数）で再取得の範囲を制御。
+	- 通常生成はoffline。`--refresh` / `--force` / `--retry-bad` で再取得の範囲を制御。
 	- 出力: `web/src/generated/simbad_mappings.json`, `web/src/generated/simbad_mappings.ts`
+- `web/scripts/generate-kinematics.mjs`
+	- `data_kinematics/processed/dwarf_mw_kinematics.csv` から公開可能な正規化列だけを抽出。
+	- 天体・sourceごとに最大1,000レコードのJSONへ分割し、raw payloadと `original_row_json` は公開しない。
+	- 出力: `web/src/generated/kinematics_summary.ts`, `web/public/data/kinematics/<object>/`
 
 ### UI/機能の要点（実装からの抜粋）
 - ルーティング
 	- `web/src/app/page.tsx`: データセット一覧（Card グリッド）
 	- `web/src/app/datasets/[slug]/page.tsx`: 静的生成（`dynamicParams=false` + `generateStaticParams`）
 	- `web/src/app/datasets/[slug]/DatasetClient.tsx`: テーブルと Aladin Lite を横並び表示し、選択状態を同期
+	- `web/src/app/objects/page.tsx`: kinematics coverage一覧、検索・host・coverageフィルタ
+	- `web/src/app/objects/[key]/page.tsx`: source provenance、遅延チャンク、診断図、表、Aladin同期
 	- `web/src/app/about/page.tsx`: フォークであることの明示、リンク/クレジット/ライセンス
 - `DatasetTable`（`web/src/components/DatasetTable.tsx`）
 	- TanStack Table によるソート/フィルタ/ページング、列表示の切替。
@@ -55,9 +64,10 @@ AGENTS.mdは、コーディングエージェント用のドキュメントで�
 - Fullscreen 時のUI調整
 	- `web/src/app/globals.css`: `body.aladin-fullscreen header { display: none }` でヘッダ重なりを回避。
 
-### VizieR 取得方式（静的exportとの整合）
-- `web/src/app/api/vizier/catalogs/route.ts` は 501 を返す形で無効化。
-	- `output: export`（静的エクスポート）との衝突回避のため、クライアントから VizieR を直接叩く方針。
+### 静的exportとの整合
+- 動的API routeは持たず、データと外部lookup cacheはビルド前生成する。
+- 大きな表はTypeScriptやHTMLへ埋め込まず、`public/data/` のJSONをroute表示後に取得する。
+- CIで最大HTML、JSON chunk、summary、静的export全体のサイズ予算を検査する。
 
 ### 外部リンク設定（フォーク向け）
 - `web/src/app/siteConfig.ts` で `NEXT_PUBLIC_FORK_*` を参照して About/フッタ等のリンクを出し分け。

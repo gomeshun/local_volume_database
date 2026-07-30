@@ -1,19 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { siteConfig } from "./siteConfig";
 import { Badge } from "@/components/ui/badge";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "LVDB Explorer",
@@ -27,16 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.css"
-        />
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body>
         <div className="min-h-dvh">
           <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="mx-auto flex max-w-7xl items-baseline justify-between gap-4 px-4 py-3">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
               <div className="flex flex-col gap-0.5">
                 <Link
                   href="/"
@@ -44,7 +27,7 @@ export default function RootLayout({
                 >
                   LVDB Explorer
                 </Link>
-                <div className="text-xs text-muted-foreground">Local Volume Database quick viewer</div>
+                <div className="hidden text-xs text-muted-foreground sm:block">Local Volume Database quick viewer</div>
               </div>
 
               <div className="flex items-baseline gap-3">
@@ -52,13 +35,16 @@ export default function RootLayout({
                   <Link href="/" className="text-sm">
                     Datasets
                   </Link>
+                  <Link href="/objects" className="text-sm">
+                    Kinematics
+                  </Link>
                   <Link href="/about" className="text-sm">
                     About
                   </Link>
                 </nav>
                 <Badge
                   variant="secondary"
-                  className="opacity-90"
+                  className="hidden opacity-90 sm:inline-flex"
                   title="This web UI is an unofficial fork and is not affiliated with the upstream LVDB project."
                 >
                   Unofficial fork

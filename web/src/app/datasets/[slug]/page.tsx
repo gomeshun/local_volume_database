@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import DatasetClient from "./DatasetClient";
-import { datasetBySlug, datasets } from "@/generated/datasets";
+import { datasetBySlug, datasets } from "@/generated/datasets_summary";
 
 export const dynamicParams = false;
 
@@ -27,8 +27,8 @@ export default async function DatasetPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const dataset = datasetBySlug[slug];
-  if (!dataset) notFound();
+  const summary = datasetBySlug[slug];
+  if (!summary) notFound();
 
-  return <DatasetClient dataset={dataset} />;
+  return <DatasetClient dataset={summary} />;
 }

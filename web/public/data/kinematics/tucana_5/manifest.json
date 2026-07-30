@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "tucana_5",
+  "objectName": "Tucana V",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "dba97335e0cea7592e291e9b4662dd64fe7b929f2317e044ce0e0ee70196e6c8",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 364,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/tucana_5/proper_motion--vizier--battaglia2022_tucana5_pmem--000.json",
+      "recordCount": 150,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "vizier",
+      "sourceName": "battaglia2022_tucana5_pmem",
+      "sourceRef": "Battaglia2022A&A...657A..54B",
+      "sha256": "20d7fa43038530620ed1eb467921dd21217c0d05dc3677f4e88fcb06156eca31",
+      "bytes": 98660
+    },
+    {
+      "path": "/data/kinematics/tucana_5/proper_motion--gaia_tap--gaia_dr3_source--000.json",
+      "recordCount": 150,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "8e67cb7cbcd10b1b09aa85fa06d743655e73baa0adfb6a78ceb42d5177c6f49f",
+      "bytes": 94827
+    },
+    {
+      "path": "/data/kinematics/tucana_5/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
+      "recordCount": 7,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "54e7ace1a89a91f011058fa9b5189ab68c885fd5634bd5d6a8ee45eb2c84a2b8",
+      "bytes": 5118
+    },
+    {
+      "path": "/data/kinematics/tucana_5/spectroscopy--vizier--simon2020_table3--000.json",
+      "recordCount": 57,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "simon2020_table3",
+      "sourceRef": "Simon2020ApJ...892..137S",
+      "sha256": "2790a2472e70a947a76bb700a45df926505e91240819c065989b96ac4ef759db",
+      "bytes": 36404
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "vizier",
+      "sourceName": "battaglia2022_tucana5_pmem",
+      "sourceRef": "Battaglia2022A&A...657A..54B",
+      "sourceTable": "J/A+A/657/A54/pmem",
+      "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FA%2BA%2F657%2FA54%2Fpmem&-out.max=unlimited&Galaxy=TucanaV",
+      "recordCount": 150
+    },
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sourceTable": "gaiadr3.gaia_source",
+      "sourceUrl": "https://gea.esac.esa.int/archive/",
+      "recordCount": 150
+    },
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sourceTable": "zenodo_14732612_share_v2_catalogs",
+      "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
+      "recordCount": 7
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "simon2020_table3",
+      "sourceRef": "Simon2020ApJ...892..137S",
+      "sourceTable": "J/ApJ/892/137/table3",
+      "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FApJ%2F892%2F137%2Ftable3&-out.max=unlimited",
+      "recordCount": 57
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}

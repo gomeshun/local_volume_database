@@ -1,6 +1,7 @@
 # LVDB Explorer
 
-Next.js frontend for browsing the Local Volume Database CSV tables in this repository.
+Next.js frontend for browsing Local Volume Database tables and normalized
+member-kinematics products.
 
 ## Development
 
@@ -11,7 +12,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) after the dev server starts.
 
-`npm run dev` runs `npm run prepare:data` first, which regenerates files in `src/generated/` from `../data/*.csv` and the cached VizieR/SIMBAD lookup files.
+`npm run dev` runs `npm run prepare:data` first. Normal preparation is
+deterministic and offline: it writes small route summaries under
+`src/generated/` and lazy-loaded JSON under `public/data/`.
 
 ## Useful Commands
 
@@ -21,12 +24,27 @@ npm run lint
 npm run build
 ```
 
-SIMBAD cache refresh helpers:
+Remote cache refreshes are explicit:
 
 ```bash
-npm run prepare:data:force
-npm run prepare:data:retry-bad
+npm run refresh:vizier
+npm run refresh:simbad
+npm run refresh:simbad:force
+npm run refresh:simbad:retry-bad
 ```
+
+`prepare:data` never performs those remote requests.
+
+## Data layout
+
+- `public/data/datasets/<slug>.json` contains one LVDB table and is fetched
+  only when its route is opened.
+- `public/data/kinematics/<object>/manifest.json` records source provenance,
+  checksums, semantics, and chunk metadata.
+- Kinematics chunks contain at most 1,000 public normalized records. Raw
+  provider payloads and `original_row_json` are excluded.
+- `src/generated/datasets_summary.ts` and
+  `src/generated/kinematics_summary.ts` contain only route metadata.
 
 ## Deployment Notes
 

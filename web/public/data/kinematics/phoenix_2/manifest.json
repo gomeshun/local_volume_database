@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "phoenix_2",
+  "objectName": "Phoenix II",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "f705733cd8c4dbc570966c242255a82f9fdd33939e5130126677f6d82dcc024d",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 165,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/phoenix_2/proper_motion--gaia_tap--gaia_dr3_source--000.json",
+      "recordCount": 78,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "0b4f94393bf369c944c1d8afb091a79fd6f47da143d8293149f995e3039691be",
+      "bytes": 48665
+    },
+    {
+      "path": "/data/kinematics/phoenix_2/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
+      "recordCount": 10,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "0b855bf978567b0acc55b33833b1813c81d84817ff5576c9e42c2e25a763011c",
+      "bytes": 7160
+    },
+    {
+      "path": "/data/kinematics/phoenix_2/spectroscopy--vizier--fritz2019_lmc_satellites--000.json",
+      "recordCount": 77,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "fritz2019_lmc_satellites",
+      "sourceRef": "Fritz2019A&A...623A.129F",
+      "sha256": "ed6e42532bc74d7ff4b3a289e2d5d6862ca3e84d41b5478a3f1c6eb8eb34ffb7",
+      "bytes": 53238
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sourceTable": "gaiadr3.gaia_source",
+      "sourceUrl": "https://gea.esac.esa.int/archive/",
+      "recordCount": 78
+    },
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sourceTable": "zenodo_14732612_share_v2_catalogs",
+      "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
+      "recordCount": 10
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "fritz2019_lmc_satellites",
+      "sourceRef": "Fritz2019A&A...623A.129F",
+      "sourceTable": "J/A+A/623/A129/table2",
+      "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FA%2BA%2F623%2FA129%2Ftable2&-out.max=unlimited",
+      "recordCount": 77
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}

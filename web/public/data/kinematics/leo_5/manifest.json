@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "leo_5",
+  "objectName": "Leo V",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "777c8afbfe29c893fe6fa1419ed77fabc6e06ca21f4231313457001d933c610f",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 294,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/leo_5/proper_motion--gaia_tap--gaia_dr3_source--000.json",
+      "recordCount": 27,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "bcc97229e142c29bcd826db6b287f603420b444ecde0343dc7f711eb7f260850",
+      "bytes": 16859
+    },
+    {
+      "path": "/data/kinematics/leo_5/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
+      "recordCount": 6,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "2be367b0c6d919e1ef7c1192b228651c0d87fe0424067fa578d3e54f8d39a5f5",
+      "bytes": 4381
+    },
+    {
+      "path": "/data/kinematics/leo_5/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--000.json",
+      "recordCount": 51,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sha256": "1d028b98d8ccaf7661f42310572831d0ccee6066b1be1b67261dd6eb3dd197fd",
+      "bytes": 31727
+    },
+    {
+      "path": "/data/kinematics/leo_5/spectroscopy--vizier--jenkins2021_table6--000.json",
+      "recordCount": 105,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "jenkins2021_table6",
+      "sourceRef": "Jenkins2021ApJ...920...92J",
+      "sha256": "df943256578b6c6c441ee47e61d4423167d8a24cae1043d26a237abf49f964d6",
+      "bytes": 65469
+    },
+    {
+      "path": "/data/kinematics/leo_5/spectroscopy--aas_iop_mrt--jenkins2021_table6_aas_iop--000.json",
+      "recordCount": 105,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "jenkins2021_table6_aas_iop",
+      "sourceRef": "Jenkins2021ApJ...920...92J",
+      "sha256": "9d1e9e7b76f3c6eec9f80dd64299c104a6538e17327e6b76224e9fb3ad613aaf",
+      "bytes": 63150
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sourceTable": "gaiadr3.gaia_source",
+      "sourceUrl": "https://gea.esac.esa.int/archive/",
+      "recordCount": 27
+    },
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sourceTable": "zenodo_14732612_share_v2_catalogs",
+      "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
+      "recordCount": 6
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sourceTable": "apjae290dt5_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
+      "recordCount": 51
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "jenkins2021_table6",
+      "sourceRef": "Jenkins2021ApJ...920...92J",
+      "sourceTable": "J/ApJ/920/92/table6",
+      "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FApJ%2F920%2F92%2Ftable6&-out.max=unlimited",
+      "recordCount": 105
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "jenkins2021_table6_aas_iop",
+      "sourceRef": "Jenkins2021ApJ...920...92J",
+      "sourceTable": "apjac1353t6_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/920/2/92/revision1/apjac1353t6_mrt.txt",
+      "recordCount": 105
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}

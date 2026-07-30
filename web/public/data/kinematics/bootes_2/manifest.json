@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "bootes_2",
+  "objectName": "Bootes II",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "e143894ade44c0d804a3bd1281b8d817279794140b9a30de83516af94184555b",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 357,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/bootes_2/proper_motion--gaia_tap--gaia_dr3_source--000.json",
+      "recordCount": 134,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "44763cb58165ee809ebd8f5b6c9124fac371eeeb61b91ab9ead1403f4460c7ea",
+      "bytes": 83311
+    },
+    {
+      "path": "/data/kinematics/bootes_2/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
+      "recordCount": 25,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "065b45757a38be3d050f8157761acacb0441b2cab3f03c9a1aabf33884721a42",
+      "bytes": 17265
+    },
+    {
+      "path": "/data/kinematics/bootes_2/spectroscopy--aas_iop_mrt--bruce2023_bootes2_aas_iop--000.json",
+      "recordCount": 17,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "bruce2023_bootes2_aas_iop",
+      "sourceRef": "Bruce2023ApJ...950..167B",
+      "sha256": "6f9d8620bc6dadb1ed9369ac9a4dc3b25f882a700e323f17de4f7f79584b92da",
+      "bytes": 10767
+    },
+    {
+      "path": "/data/kinematics/bootes_2/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--000.json",
+      "recordCount": 181,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sha256": "f20cea2b6e482e1b598b5e760c2b5d319ecb0ad08d4d982413a7e2e02f31c2e9",
+      "bytes": 113251
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sourceTable": "gaiadr3.gaia_source",
+      "sourceUrl": "https://gea.esac.esa.int/archive/",
+      "recordCount": 134
+    },
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sourceTable": "zenodo_14732612_share_v2_catalogs",
+      "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
+      "recordCount": 25
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "bruce2023_bootes2_aas_iop",
+      "sourceRef": "Bruce2023ApJ...950..167B",
+      "sourceTable": "apjacc943t4_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/950/2/167/revision1/apjacc943t4_mrt.txt",
+      "recordCount": 17
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sourceTable": "apjae290dt5_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
+      "recordCount": 181
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}

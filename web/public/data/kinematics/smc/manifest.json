@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "smc",
+  "objectName": "SMC",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "a719cc1beb8f6a7aa07214e9b892fb1f4c77ea0b092a84494f87f8553be959f6",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 2079,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/smc/spectroscopy--vizier--harris2006_smc_red_giants--000.json",
+      "recordCount": 1000,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "harris2006_smc_red_giants",
+      "sourceRef": "Harris2006AJ....131.2514H",
+      "sha256": "d7c08b758f8c913721c5eeb74fa1454189fcef99959ce467dd8eaf647d477b83",
+      "bytes": 616201
+    },
+    {
+      "path": "/data/kinematics/smc/spectroscopy--vizier--harris2006_smc_red_giants--001.json",
+      "recordCount": 1000,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "harris2006_smc_red_giants",
+      "sourceRef": "Harris2006AJ....131.2514H",
+      "sha256": "1d811a0ef55470c1bcf5b87a40ad35f53dad89fce38fac8a9927bf3eace7f82a",
+      "bytes": 616709
+    },
+    {
+      "path": "/data/kinematics/smc/spectroscopy--vizier--harris2006_smc_red_giants--002.json",
+      "recordCount": 79,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "harris2006_smc_red_giants",
+      "sourceRef": "Harris2006AJ....131.2514H",
+      "sha256": "791120f73b796efc8207254e1a94d84aef3c46b2dca078ffedf712544c490791",
+      "bytes": 49119
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "harris2006_smc_red_giants",
+      "sourceRef": "Harris2006AJ....131.2514H",
+      "sourceTable": "J/AJ/131/2514/table2",
+      "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FAJ%2F131%2F2514%2Ftable2&-out.max=unlimited",
+      "recordCount": 2079
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}

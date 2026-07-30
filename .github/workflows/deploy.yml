@@ -40,6 +40,16 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: npm run build
 
+      - name: Lint and verify generated data
+        working-directory: web
+        run: |
+          npm run lint
+          npm run test:data
+
+      - name: Enforce static artifact budgets
+        working-directory: web
+        run: npm run check:artifacts
+
       - name: Disable Jekyll
         run: touch web/out/.nojekyll
 

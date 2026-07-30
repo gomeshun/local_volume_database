@@ -136,6 +136,23 @@ export default function AboutPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Member-kinematics provenance</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            Kinematic entries are normalized source records, not a deduplicated catalog of unique
+            member stars. Selection functions and membership definitions remain specific to each
+            cited provider.
+          </p>
+          <p>
+            Each object page lists its providers, source table, reference, record count, and
+            SHA-256 checksums for the normalized input and public projection.
+          </p>
+        </CardContent>
+      </Card>
+
       <p className="text-sm text-muted-foreground">
         Want to report issues? For LVDB data/content issues, please use the upstream LVDB channels.
         For web UI issues specific to this fork, use this fork&apos;s issue tracker.

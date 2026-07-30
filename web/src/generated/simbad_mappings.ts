@@ -15304,6 +15304,42 @@ export const simbadMappings =
       "simbad_dec": -20.0111,
       "separation_arcsec": 14.141503711346985,
       "matched": true
+    },
+    "bliss_1": {
+      "fetchedAt": "2026-01-27T02:21:23.217Z",
+      "mainId": "NAME Bliss 1",
+      "otype": null,
+      "simbad_ra": 177.511,
+      "simbad_dec": -41.772,
+      "separation_arcsec": 2.6848834864303774,
+      "matched": true
+    },
+    "kim_3": {
+      "fetchedAt": "2026-01-27T02:21:24.645Z",
+      "mainId": "NAME Kim 3",
+      "otype": null,
+      "simbad_ra": 200.68833,
+      "simbad_dec": -30.601,
+      "separation_arcsec": 3.7424076501776273,
+      "matched": true
+    },
+    "koposov_1": {
+      "fetchedAt": "2026-01-27T02:21:25.019Z",
+      "mainId": "Koposov 1",
+      "otype": null,
+      "simbad_ra": 179.82667,
+      "simbad_dec": 12.25994,
+      "separation_arcsec": 7.400480078057945,
+      "matched": true
+    },
+    "ymca_1": {
+      "fetchedAt": "2026-01-27T02:21:25.303Z",
+      "mainId": "NAME YMCA-1",
+      "otype": null,
+      "simbad_ra": 110.8369,
+      "simbad_dec": -64.8313,
+      "separation_arcsec": 2.5620779533705225,
+      "matched": true
     }
   },
   "gc_other": {
@@ -16727,6 +16763,78 @@ export const simbadMappings =
       "simbad_ra": 77.209125,
       "simbad_dec": -68.759903,
       "separation_arcsec": 26.85069983140326,
+      "matched": true
+    },
+    "ngc_6749": {
+      "fetchedAt": "2026-01-27T02:22:05.774Z",
+      "mainId": "NGC  6749",
+      "otype": null,
+      "simbad_ra": 286.314,
+      "simbad_dec": 1.9,
+      "separation_arcsec": 0.9012105905843721,
+      "matched": true
+    },
+    "vvv_cl001": {
+      "fetchedAt": "2026-01-27T02:22:14.302Z",
+      "mainId": "VVV CL001",
+      "otype": null,
+      "simbad_ra": 268.6771,
+      "simbad_dec": -24.0147,
+      "separation_arcsec": 0.09748644563762048,
+      "matched": true
+    },
+    "andromeda_05": {
+      "fetchedAt": "2026-01-27T02:19:21.519Z",
+      "mainId": "NAME Andromeda V",
+      "otype": null,
+      "simbad_ra": 17.5713,
+      "simbad_dec": 47.6281,
+      "separation_arcsec": 4.016678359104455,
+      "matched": true
+    },
+    "andromeda_06": {
+      "fetchedAt": "2026-01-27T02:19:21.527Z",
+      "mainId": "NAME Peg dSph",
+      "otype": null,
+      "simbad_ra": 357.9429,
+      "simbad_dec": 24.5825,
+      "separation_arcsec": 8.249742958283901,
+      "matched": true
+    },
+    "aquarius_1": {
+      "fetchedAt": "2026-01-27T02:19:26.185Z",
+      "mainId": "MCG-02-53-003",
+      "otype": null,
+      "simbad_ra": 311.7154,
+      "simbad_dec": -12.8483,
+      "separation_arcsec": 1.7570667613836302,
+      "matched": true
+    },
+    "cetus_1": {
+      "fetchedAt": "2026-01-27T02:19:26.189Z",
+      "mainId": "NAME Cetus Dwarf Galaxy",
+      "otype": null,
+      "simbad_ra": 6.545,
+      "simbad_dec": -11.0539,
+      "separation_arcsec": 34.167110226220345,
+      "matched": true
+    },
+    "lgs_3": {
+      "fetchedAt": "2026-01-27T02:19:24.497Z",
+      "mainId": "NAME Pisces I",
+      "otype": null,
+      "simbad_ra": 15.9792,
+      "simbad_dec": 21.885,
+      "separation_arcsec": 0.11132998830144242,
+      "matched": true
+    },
+    "tucana_1": {
+      "fetchedAt": "2026-01-27T02:19:32.808Z",
+      "mainId": "NAME Tuc Galaxy",
+      "otype": null,
+      "simbad_ra": 340.4567,
+      "simbad_dec": -64.4194,
+      "separation_arcsec": 0.16812257785733128,
       "matched": true
     }
   }

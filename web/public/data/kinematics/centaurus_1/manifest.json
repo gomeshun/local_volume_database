@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "centaurus_1",
+  "objectName": "Centaurus I",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "b144cc7b0b58c4883c819d3b05f68904cb9f9928f5be96a2bf9b8b90b0e1a1a4",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 152,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/centaurus_1/proper_motion--gaia_tap--gaia_dr3_source--000.json",
+      "recordCount": 64,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "10fbfeb2c55602627383bfd85f2475f76d96738ccd94f3c385924a37e732aadf",
+      "bytes": 39963
+    },
+    {
+      "path": "/data/kinematics/centaurus_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
+      "recordCount": 26,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "85236418dfeb2be855067cb23cb793359a9181319a7416d562c09f5633909cbb",
+      "bytes": 18133
+    },
+    {
+      "path": "/data/kinematics/centaurus_1/spectroscopy--aas_iop_mrt--heiger2024_centaurus1_aas_iop--000.json",
+      "recordCount": 62,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "heiger2024_centaurus1_aas_iop",
+      "sourceRef": "Heiger2024ApJ...961..234H",
+      "sha256": "52d4d26899e28b2b75560fe221bff47a128972a4e77096a94fe9e5bd45e4d6f4",
+      "bytes": 39800
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sourceTable": "gaiadr3.gaia_source",
+      "sourceUrl": "https://gea.esac.esa.int/archive/",
+      "recordCount": 64
+    },
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sourceTable": "zenodo_14732612_share_v2_catalogs",
+      "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
+      "recordCount": 26
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "heiger2024_centaurus1_aas_iop",
+      "sourceRef": "Heiger2024ApJ...961..234H",
+      "sourceTable": "apjad0cf7t4_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/961/2/234/revision1/apjad0cf7t4_mrt.txt",
+      "recordCount": 62
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}

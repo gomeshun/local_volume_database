@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, Fragment, type ReactNode } from "react";
 import {
   type ColumnDef,
@@ -16,6 +17,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { vizierCatalogs } from "@/generated/vizier_catalogs";
 import { simbadMappings } from "@/generated/simbad_mappings";
+import { kinematicObjectByKey } from "@/generated/kinematics_summary";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -320,6 +322,18 @@ export function DatasetTable({
               )}
 
               {badge}
+
+              {datasetSlug === "dwarf_mw" && kinematicObjectByKey[rowId] ? (
+                <Link
+                  href={`/objects/${encodeURIComponent(rowId)}`}
+                  className="whitespace-nowrap text-xs"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {kinematicObjectByKey[rowId].totalRecords > 0
+                    ? "Member records"
+                    : "Coverage"}
+                </Link>
+              ) : null}
 
               {/* Add children button: dispatches a custom event that Aladin viewer listens to */}
               <Button

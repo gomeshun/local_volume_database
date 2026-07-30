@@ -186,8 +186,10 @@ async function main() {
   // - `--retry-bad` to re-fetch previously fetched entries that lacked successful results
   const force = process.argv.includes("--force") || process.env.FORCE_SIMBAD === "1";
   const retryBad = process.argv.includes("--retry-bad") || process.env.RETRY_BAD === "1";
+  const refresh = process.argv.includes("--refresh") || force || retryBad;
   if (force) console.log("Force mode: will re-fetch all SIMBAD entries");
   if (retryBad) console.log("Retry-bad mode: will re-fetch previously fetched entries missing successful results");
+  if (!refresh) console.log("Offline mode: missing SIMBAD entries will not be fetched");
 
   // Load existing cache
   let cache = {};
@@ -258,6 +260,11 @@ async function main() {
 
   const totalSlugsToFetch = tasks.reduce((acc, t) => acc + (t.slugs ? t.slugs.length : 1), 0);
   console.log(`Need to fetch SIMBAD for ${tasks.length} unique rowIds across ${totalSlugsToFetch} table entries`);
+
+  if (!refresh && tasks.length > 0) {
+    console.log("Skipping remote SIMBAD lookups during deterministic data generation.");
+    tasks.length = 0;
+  }
 
   // Limit concurrency
   const concurrency = 6;

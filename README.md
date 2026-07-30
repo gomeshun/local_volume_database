@@ -22,11 +22,13 @@ Upstream (and this fork) includes a **CC0 1.0 Universal** dedication (see `LICEN
 
 We are building a researcher-friendly web application under `web/` (Next.js) and publishing it on GitHub Pages.
 
-### Roadmap memo (incremental)
+### Current capabilities
 
-1. Start by displaying the database content as-is (tables/lists/details from the CSV/YAML included in this repo)
-2. Add graphical sky visualization using the Aladin Lite API (RA/Dec)
-3. Gradually integrate SIMBAD / NED / VizieR to fetch richer info (object position, member-star catalogs, etc.)
+- Lazy-loaded LVDB tables with sorting, filtering, units, and reference links.
+- Linked table and Aladin Lite sky selection.
+- Build-time VizieR/SIMBAD caches.
+- Source-normalized member-kinematics records with per-object provenance,
+  chunked loading, diagnostics, and CSV export.
 
 ### Local dev
 
@@ -35,18 +37,25 @@ Run from `web/`:
     npm install
     npm run dev
 
-### Data generation & SIMBAD mappings 🔧
+### Data generation and external caches
 
-- The `web/` package provides a helper script to prepare generated datasets:
+- Normal data preparation is deterministic and offline:
 
-    npm run prepare:data  # runs `node scripts/generate-datasets.mjs && node scripts/generate-simbad.mjs`
+    npm run prepare:data
 
-- `scripts/generate-simbad.mjs` behavior:
-  - Default: entries that already have `fetchedAt` in the cache are skipped (avoids re-querying SIMBAD).
-  - `--force` (or `FORCE_SIMBAD=1`) re-fetches all entries regardless of cache.
-  - `--retry-bad` (or `RETRY_BAD=1`) re-fetches previously fetched entries that lack a successful result (i.e. missing a `matched` attribute).
+- Refresh external services explicitly:
 
-- The GitHub Actions workflow `.github/workflows/update-vizier-cache.yml` exposes manual dispatch inputs `force` and `retry_bad` that map to `FORCE_SIMBAD`/`RETRY_BAD` environment variables for the run.
+    npm run refresh:vizier
+    npm run refresh:simbad
+    npm run refresh:simbad:retry-bad
+    npm run refresh:simbad:force
+
+The generated route summaries remain small. Dataset tables and member
+kinematics are stored as lazy-loaded public JSON; kinematics chunks contain at
+most 1,000 normalized records and exclude raw provider payloads.
+
+The manual `.github/workflows/update-vizier-cache.yml` workflow provides the
+same explicit refresh controls.
 
 ### GitHub Pages deploy
 
@@ -127,6 +136,5 @@ The BibTeX of the citation is available below and on [ADS](https://ui.adsabs.har
         adsurl = {https://ui.adsabs.harvard.edu/abs/2025OJAp....8E.142P},
         adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
-
 
 

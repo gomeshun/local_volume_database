@@ -293,7 +293,7 @@ export function AladinLiteViewer({
   return (
     <div>
       <Script
-        src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"
+        src="https://aladin.cds.unistra.fr/AladinLite/api/v3/3.8.2/aladin.js"
         strategy="afterInteractive"
         onLoad={() => setLoaded(true)}
       />

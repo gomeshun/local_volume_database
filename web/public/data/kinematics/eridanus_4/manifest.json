@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "eridanus_4",
+  "objectName": "Eridanus IV",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "7357cf91e32a37b8228ec7d84514b753966b0a5da75ef45b4dcfc93ced01bfe9",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 148,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/eridanus_4/proper_motion--gaia_tap--gaia_dr3_source--000.json",
+      "recordCount": 59,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "421b571d0973e57971181c7b4d6d6cc2033b3ae3a0a7d3a48751fa800119a8a1",
+      "bytes": 36879
+    },
+    {
+      "path": "/data/kinematics/eridanus_4/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--000.json",
+      "recordCount": 36,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sha256": "016bf09670f4d1212c87dab932d233ace7a462635072abcfb53168d2f31da85c",
+      "bytes": 23374
+    },
+    {
+      "path": "/data/kinematics/eridanus_4/spectroscopy--aas_iop_mrt--heiger2024_eridanus4_aas_iop--000.json",
+      "recordCount": 53,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "heiger2024_eridanus4_aas_iop",
+      "sourceRef": "Heiger2024ApJ...961..234H",
+      "sha256": "3685321f82018e047e5426b75a5922216c0f0a35d6bc5de473a5a846a2d389bd",
+      "bytes": 33725
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sourceTable": "gaiadr3.gaia_source",
+      "sourceUrl": "https://gea.esac.esa.int/archive/",
+      "recordCount": 59
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sourceTable": "apjae290dt5_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
+      "recordCount": 36
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "heiger2024_eridanus4_aas_iop",
+      "sourceRef": "Heiger2024ApJ...961..234H",
+      "sourceTable": "apjad0cf7t3_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/961/2/234/revision1/apjad0cf7t3_mrt.txt",
+      "recordCount": 53
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}

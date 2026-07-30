@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "objectKey": "sculptor_1",
+  "objectName": "Sculptor",
+  "sourceInputSha256": "6a6f03caae9ea71bec66d81a1f4103becc50b83315697fba247b52acc16c2d2b",
+  "sourceSnapshotModifiedAt": "2026-05-20T02:51:46.772Z",
+  "publicDataSha256": "acd8efd0f18914d99dc0fb86cc5dcbc6aa70f54bbc726acda0a8e4fd1bbb6101",
+  "columns": [
+    "object_key",
+    "object_name",
+    "source_kind",
+    "source_provider",
+    "source_ref",
+    "source_name",
+    "source_table",
+    "source_url",
+    "source_row",
+    "star_id",
+    "ra_deg",
+    "dec_deg",
+    "vlos_kms",
+    "vlos_err_kms",
+    "pmra_masyr",
+    "pmra_err_masyr",
+    "pmdec_masyr",
+    "pmdec_err_masyr",
+    "membership_probability",
+    "membership_flag",
+    "feh",
+    "feh_err"
+  ],
+  "totalRecords": 14699,
+  "chunkSize": 1000,
+  "chunks": [
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--gaia_tap--gaia_dr3_source--000.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "e7765e7c66cb5572d4c1d72fe9feba0f78ca7e7f09ade4bcca57a169e8ee6347",
+      "bytes": 629326
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--gaia_tap--gaia_dr3_source--001.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "b0093fb5d3ee717f9f54657db482588b0f16dcd3110ff2af26674db962a538aa",
+      "bytes": 629174
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--gaia_tap--gaia_dr3_source--002.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "d14e201dfd5cb4dfc0f81902a26643070f9c51612dbfe944e87be75eb832ecf4",
+      "bytes": 628924
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--gaia_tap--gaia_dr3_source--003.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "4825eae9bfba19245ea1f5833139892dce178d79844338c2e8787b79d1a1b1c6",
+      "bytes": 629176
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--gaia_tap--gaia_dr3_source--004.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "c3b5652cff0a9121d5ec381c1334327c821da393caa80c947c17302fbc8bd420",
+      "bytes": 629173
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--gaia_tap--gaia_dr3_source--005.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "74e5fd5ac6b2b19eebf37c995f715af6c677de97e75251ef3e70dbf1965024b7",
+      "bytes": 629050
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--gaia_tap--gaia_dr3_source--006.json",
+      "recordCount": 387,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sha256": "f33ecff2a1195b95295430eb40b1a533403608f59a551bdcef1326dcf617007a",
+      "bytes": 243632
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--000.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "155c822fd5a948dd5ba54e533425c5f463eb6a3de6a28af9c9b5738b88f996b1",
+      "bytes": 680320
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--001.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "5ebafe795d9579ba02cb472ff6d05ae7e49cc657c45912730d3e2ae759cd5be1",
+      "bytes": 680304
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--002.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "bf9ff01411e5f8bbecdc735b2050fd6261b068e778269c94effea7f8dcc68016",
+      "bytes": 679967
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--003.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "2f51a36e132c3296966980eeef07c975976b30a16218237f1872352e07a2eee7",
+      "bytes": 680248
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--004.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "7b171b27d85c34fe230e65cf03f35af77d048aeaf55d79ec0a48b535b6d3f125",
+      "bytes": 680245
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--005.json",
+      "recordCount": 1000,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "5015df9a540ed0ac955616f93133b37ef035d5f5868a02f9a14bbeb355d09ab6",
+      "bytes": 680140
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/proper_motion--zenodo_zip--pace2022_dwarf_spheroidal_gaia_edr3_zenodo--006.json",
+      "recordCount": 365,
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sha256": "23e3f932bb5a816616248aab0d51f59e7e0ac3a4f8a7ebcba1751dfdd783c860",
+      "bytes": 248424
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/spectroscopy--aas_iop_mrt--geha2026_deimos_expanded_aas_iop--000.json",
+      "recordCount": 406,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sha256": "c17c2f18aedd6d3a9b06b49da627a0901ad96a44d404d958a60b1308a73ad16a",
+      "bytes": 263451
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/spectroscopy--vizier--walker2009_stars--000.json",
+      "recordCount": 1000,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "walker2009_stars",
+      "sourceRef": "Walker2009AJ....137.3100W",
+      "sha256": "ad97579e73943183f0baec93b0e54cee5602cab149e80b7fdc79429e70f653f2",
+      "bytes": 616603
+    },
+    {
+      "path": "/data/kinematics/sculptor_1/spectroscopy--vizier--walker2009_stars--001.json",
+      "recordCount": 541,
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "walker2009_stars",
+      "sourceRef": "Walker2009AJ....137.3100W",
+      "sha256": "a91f837f6003b2731b5a0b0dfd1f3fdd79608dd37deb4c9581058168929108a8",
+      "bytes": 331902
+    }
+  ],
+  "sources": [
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "gaia_tap",
+      "sourceName": "gaia_dr3_source",
+      "sourceRef": "GaiaCollaboration2023A&A...674A...1G",
+      "sourceTable": "gaiadr3.gaia_source",
+      "sourceUrl": "https://gea.esac.esa.int/archive/",
+      "recordCount": 6387
+    },
+    {
+      "sourceKind": "proper_motion",
+      "sourceProvider": "zenodo_zip",
+      "sourceName": "pace2022_dwarf_spheroidal_gaia_edr3_zenodo",
+      "sourceRef": "Pace2022ApJ...940..136P",
+      "sourceTable": "zenodo_14732612_share_v2_catalogs",
+      "sourceUrl": "https://zenodo.org/api/records/14732612/files/share_v2.zip/content",
+      "recordCount": 6365
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "aas_iop_mrt",
+      "sourceName": "geha2026_deimos_expanded_aas_iop",
+      "sourceRef": "Geha2026ApJ...999..140G",
+      "sourceTable": "apjae290dt5_mrt",
+      "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
+      "recordCount": 406
+    },
+    {
+      "sourceKind": "spectroscopy",
+      "sourceProvider": "vizier",
+      "sourceName": "walker2009_stars",
+      "sourceRef": "Walker2009AJ....137.3100W",
+      "sourceTable": "J/AJ/137/3100/stars",
+      "sourceUrl": "https://vizier.cds.unistra.fr/viz-bin/votable?-source=J%2FAJ%2F137%2F3100%2Fstars&-out.max=unlimited",
+      "recordCount": 1541
+    }
+  ],
+  "semantics": {
+    "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
+    "membership": "Membership probability and flag retain provider-specific definitions and must not be compared without consulting the cited source."
+  }
+}
