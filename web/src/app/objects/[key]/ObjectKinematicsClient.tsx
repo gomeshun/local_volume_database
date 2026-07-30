@@ -204,16 +204,28 @@ export default function ObjectKinematicsClient({
   );
 
   useEffect(() => {
-    const firstUnloaded = visibleChunks.find(
-      (chunk) =>
-        !chunkCacheRef.current.has(chunk.path) &&
-        !failedPathsRef.current.has(chunk.path),
-    );
     const hasVisibleLoaded = visibleChunks.some((chunk) =>
       chunkCacheRef.current.has(chunk.path),
     );
-    if (!hasVisibleLoaded && firstUnloaded && !loadingChunks) {
-      void loadPaths([firstUnloaded.path]);
+    if (hasVisibleLoaded || loadingChunks) return;
+
+    const initialPaths: string[] = [];
+    const representedKinds = new Set<string>();
+    visibleChunks.forEach((chunk) => {
+      if (
+        representedKinds.has(chunk.sourceKind) ||
+        chunkCacheRef.current.has(chunk.path) ||
+        failedPathsRef.current.has(chunk.path)
+      ) {
+        return;
+      }
+      representedKinds.add(chunk.sourceKind);
+      initialPaths.push(chunk.path);
+    });
+    if (initialPaths.length > 0) {
+      // Load one chunk per record kind so the initial diagnostics can include
+      // both spectroscopy and proper motion without loading the full object.
+      void loadPaths(initialPaths);
     }
   }, [cacheVersion, loadPaths, loadingChunks, visibleChunks]);
 

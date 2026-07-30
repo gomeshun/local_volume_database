@@ -45,6 +45,9 @@ npm run refresh:simbad:retry-bad
   provider payloads and `original_row_json` are excluded.
 - `src/generated/datasets_summary.ts` and
   `src/generated/kinematics_summary.ts` contain only route metadata.
+- Object diagnostics include the proper-motion plane, an automatically binned
+  line-of-sight velocity histogram, and a selectable-axis scatter plot. They
+  describe loaded records rather than a de-duplicated stellar sample.
 
 ## Deployment Notes
 

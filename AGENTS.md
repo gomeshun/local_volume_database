@@ -47,7 +47,7 @@ AGENTS.mdは、コーディングエージェント用のドキュメントで�
 	- `web/src/app/datasets/[slug]/page.tsx`: 静的生成（`dynamicParams=false` + `generateStaticParams`）
 	- `web/src/app/datasets/[slug]/DatasetClient.tsx`: テーブルと Aladin Lite を横並び表示し、選択状態を同期
 	- `web/src/app/objects/page.tsx`: kinematics coverage一覧、検索・host・coverageフィルタ
-	- `web/src/app/objects/[key]/page.tsx`: source provenance、遅延チャンク、診断図、表、Aladin同期
+	- `web/src/app/objects/[key]/page.tsx`: source provenance、遅延チャンク、視線速度ヒストグラム、軸選択式散布図、表、Aladin同期
 	- `web/src/app/about/page.tsx`: フォークであることの明示、リンク/クレジット/ライセンス
 - `DatasetTable`（`web/src/components/DatasetTable.tsx`）
 	- TanStack Table によるソート/フィルタ/ページング、列表示の切替。
