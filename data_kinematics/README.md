@@ -21,6 +21,12 @@ Membership values carry explicit origin columns:
 
 Blank membership remains unknown and must not be interpreted as non-membership.
 
+The public-column data dictionary is maintained in
+`web/src/data/kinematics_columns.json` and published as
+`web/public/data/kinematics/columns.json`. It documents names, types, units,
+missing-value semantics, physical definitions, and source-dependent caveats for
+the browser table and downloaded CSV.
+
 Run the tools from the repository root with the project `uv` environment:
 
 ```bash

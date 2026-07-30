@@ -5,6 +5,13 @@ import path from "node:path";
 const REPO_ROOT = path.resolve(process.cwd(), "..");
 const PUBLIC_ROOT = path.resolve(process.cwd(), "public", "data", "kinematics");
 const GENERATED_ROOT = path.resolve(process.cwd(), "src", "generated");
+const COLUMN_DICTIONARY_SOURCE = path.resolve(
+  process.cwd(),
+  "src",
+  "data",
+  "kinematics_columns.json",
+);
+const COLUMN_DICTIONARY_PUBLIC_PATH = "/data/kinematics/columns.json";
 const CHUNK_SIZE = 1000;
 
 const PUBLIC_KINEMATICS_COLUMNS = [
@@ -78,6 +85,49 @@ async function readCsv(filePath) {
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function validateColumnDictionary(dictionary) {
+  if (
+    dictionary.schemaVersion !== 1 ||
+    !Array.isArray(dictionary.columns) ||
+    typeof dictionary.missingValue !== "string"
+  ) {
+    throw new Error("Invalid kinematics column dictionary structure.");
+  }
+  const names = dictionary.columns.map((definition) => definition.column);
+  if (
+    names.length !== new Set(names).size ||
+    names.length !== PUBLIC_KINEMATICS_COLUMNS.length ||
+    names.some(
+      (name, index) => name !== PUBLIC_KINEMATICS_COLUMNS[index],
+    )
+  ) {
+    throw new Error(
+      "Kinematics column dictionary must define every public column in schema order.",
+    );
+  }
+  for (const definition of dictionary.columns) {
+    for (const field of [
+      "column",
+      "label",
+      "dataType",
+      "unit",
+      "description",
+      "notes",
+    ]) {
+      if (typeof definition[field] !== "string") {
+        throw new Error(
+          `Invalid ${field} for kinematics column ${definition.column ?? "unknown"}.`,
+        );
+      }
+    }
+    if (!definition.label || !definition.description) {
+      throw new Error(
+        `Kinematics column ${definition.column} requires a label and description.`,
+      );
+    }
+  }
 }
 
 function safeSegment(value) {
@@ -227,6 +277,7 @@ async function writeObjectData(object, rows, inputSha256, sourceSnapshotModified
     sourceInputSha256: inputSha256,
     sourceSnapshotModifiedAt,
     publicDataSha256: sha256(publicRowsSerialized),
+    columnDictionaryPath: COLUMN_DICTIONARY_PUBLIC_PATH,
     columns: PUBLIC_KINEMATICS_COLUMNS,
     totalRecords: orderedRows.length,
     chunkSize: CHUNK_SIZE,
@@ -276,11 +327,14 @@ async function main() {
     }
   }
 
-  const [kinematics, dwarfData, inputStat] = await Promise.all([
+  const [kinematics, dwarfData, inputStat, columnDictionaryText] = await Promise.all([
     readCsv(inputCsv),
     readCsv(dwarfCsv),
     fs.stat(inputCsv),
+    fs.readFile(COLUMN_DICTIONARY_SOURCE, "utf8"),
   ]);
+  const columnDictionary = JSON.parse(columnDictionaryText);
+  validateColumnDictionary(columnDictionary);
   const inputSha256 = sha256(kinematics.text);
   const sourceSnapshotModifiedAt = inputStat.mtime.toISOString();
   const publicRows = kinematics.rows.map(sanitizeRow);
@@ -308,6 +362,11 @@ async function main() {
     fs.mkdir(PUBLIC_ROOT, { recursive: true }),
     fs.mkdir(GENERATED_ROOT, { recursive: true }),
   ]);
+  await fs.writeFile(
+    path.resolve(PUBLIC_ROOT, "columns.json"),
+    `${JSON.stringify(columnDictionary, null, 2)}\n`,
+    "utf8",
+  );
 
   const summaries = [];
   for (const key of objectKeys) {

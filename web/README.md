@@ -41,6 +41,10 @@ npm run refresh:simbad:retry-bad
   only when its route is opened.
 - `public/data/kinematics/<object>/manifest.json` records source provenance,
   checksums, semantics, and chunk metadata.
+- `public/data/kinematics/columns.json` is the machine-readable data dictionary
+  for every normalized table and CSV column. Object pages expose the same
+  definitions in a Column guide, table-header tooltips, and a downloadable
+  guide CSV.
 - Kinematics chunks contain at most 1,000 public normalized records. Raw
   provider payloads and `original_row_json` are excluded.
 - Membership values expose `reported`, `same_star`, and `seed_source` origins.

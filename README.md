@@ -30,7 +30,7 @@ We are building a researcher-friendly web application under `web/` (Next.js) and
 - Source-normalized member-kinematics records with per-object provenance,
   reversible per-dataset selection, color-coded proper-motion, sky-position,
   line-of-sight velocity, and selectable-axis diagnostics, membership-value
-  origins, and selected-dataset CSV export.
+  origins, documented table/CSV columns, and selected-dataset CSV export.
 
 ### Local dev
 

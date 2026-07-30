@@ -14,6 +14,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  describeKinematicsColumn,
+  formatKinematicsColumnLabel,
+  getKinematicsColumnDefinition,
+} from "@/lib/kinematicsColumns";
 import type { PublicKinematicsRow } from "@/types/kinematics";
 
 type SortDirection = "asc" | "desc";
@@ -44,24 +49,6 @@ const PREFERRED_COLUMNS = [
   "dec_deg",
   "source_ref",
 ];
-
-const COLUMN_UNITS: Record<string, string> = {
-  ra_deg: "deg",
-  dec_deg: "deg",
-  vlos_kms: "km/s",
-  vlos_err_kms: "km/s",
-  pmra_masyr: "mas/yr",
-  pmra_err_masyr: "mas/yr",
-  pmdec_masyr: "mas/yr",
-  pmdec_err_masyr: "mas/yr",
-  feh: "dex",
-  feh_err: "dex",
-};
-
-function formatColumnLabel(column: string): string {
-  const unit = COLUMN_UNITS[column];
-  return unit ? `${column} (${unit})` : column;
-}
 
 function bibcodeFromRefValue(value: string): string | null {
   const trimmed = String(value ?? "").trim();
@@ -278,15 +265,26 @@ export function MemberKinematicsTable({
             <DropdownMenuContent align="end" className="max-h-[60vh] w-72 overflow-y-auto">
               <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {orderedColumns.map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column}
-                  checked={Boolean(visibleColumns[column])}
-                  onCheckedChange={(checked) => setVisibleColumns((current) => ({ ...current, [column]: Boolean(checked) }))}
-                >
-                  {formatColumnLabel(column)}
-                </DropdownMenuCheckboxItem>
-              ))}
+              {orderedColumns.map((column) => {
+                const definition = getKinematicsColumnDefinition(column);
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column}
+                    checked={Boolean(visibleColumns[column])}
+                    onCheckedChange={(checked) => setVisibleColumns((current) => ({ ...current, [column]: Boolean(checked) }))}
+                  >
+                    <span>
+                      {formatKinematicsColumnLabel(column)}
+                      {definition ? (
+                        <span className="text-muted-foreground">
+                          {" "}
+                          — {definition.label}
+                        </span>
+                      ) : null}
+                    </span>
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -338,9 +336,11 @@ export function MemberKinematicsTable({
                       size="sm"
                       className="-ml-2 h-8 px-2 font-medium text-muted-foreground hover:text-foreground"
                       onClick={() => toggleSort(column)}
-                      title={formatColumnLabel(column)}
+                      title={describeKinematicsColumn(column)}
                     >
-                      <span className="max-w-[14rem] truncate whitespace-nowrap">{formatColumnLabel(column)}</span>
+                      <span className="max-w-[14rem] truncate whitespace-nowrap">
+                        {formatKinematicsColumnLabel(column)}
+                      </span>
                       {sorted === "asc" ? (
                         <ArrowUp className="h-4 w-4 opacity-70" aria-label="Sorted ascending" />
                       ) : sorted === "desc" ? (

@@ -24,6 +24,48 @@ async function testDatasets() {
 
 async function testKinematics() {
   const root = path.resolve(PUBLIC_ROOT, "data", "kinematics");
+  const sourceColumnDictionary = JSON.parse(
+    await fs.readFile(
+      path.resolve(
+        process.cwd(),
+        "src",
+        "data",
+        "kinematics_columns.json",
+      ),
+      "utf8",
+    ),
+  );
+  const publicColumnDictionary = JSON.parse(
+    await fs.readFile(path.resolve(root, "columns.json"), "utf8"),
+  );
+  assert.deepEqual(
+    publicColumnDictionary,
+    sourceColumnDictionary,
+    "published kinematics column dictionary",
+  );
+  assert.equal(
+    publicColumnDictionary.schemaVersion,
+    1,
+    "kinematics column dictionary schema version",
+  );
+  assert.ok(
+    String(publicColumnDictionary.missingValue).includes("must not be interpreted"),
+    "kinematics missing-value semantics",
+  );
+  const columnDefinitions = new Map();
+  for (const definition of publicColumnDictionary.columns) {
+    assert.ok(definition.column, "column dictionary name");
+    assert.ok(definition.label, `${definition.column}: column dictionary label`);
+    assert.ok(
+      definition.description,
+      `${definition.column}: column dictionary description`,
+    );
+    assert.ok(
+      !columnDefinitions.has(definition.column),
+      `${definition.column}: unique column dictionary entry`,
+    );
+    columnDefinitions.set(definition.column, definition);
+  }
   const summaryText = await fs.readFile(
     path.resolve(process.cwd(), "src", "generated", "kinematics_summary.ts"),
     "utf8",
@@ -54,6 +96,16 @@ async function testKinematics() {
     const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
     assert.equal(manifest.schemaVersion, 2, `${directory.name}: schema version`);
     assert.equal(manifest.objectKey, directory.name, `${directory.name}: object key`);
+    assert.equal(
+      manifest.columnDictionaryPath,
+      "/data/kinematics/columns.json",
+      `${directory.name}: column dictionary path`,
+    );
+    assert.deepEqual(
+      manifest.columns,
+      publicColumnDictionary.columns.map((definition) => definition.column),
+      `${directory.name}: documented public columns`,
+    );
     assert.ok(
       !Number.isNaN(Date.parse(manifest.sourceSnapshotModifiedAt)),
       `${directory.name}: source snapshot timestamp`,
@@ -68,6 +120,7 @@ async function testKinematics() {
       const payload = JSON.parse(text);
       assert.equal(payload.schemaVersion, 2, `${chunk.path}: schema version`);
       assert.equal(payload.objectKey, directory.name, `${chunk.path}: object key`);
+      assert.deepEqual(payload.columns, manifest.columns, `${chunk.path}: columns`);
       assert.equal(payload.rows.length, chunk.recordCount, `${chunk.path}: row count`);
       assert.ok(payload.rows.length <= manifest.chunkSize, `${chunk.path}: chunk size`);
       for (const row of payload.rows) {

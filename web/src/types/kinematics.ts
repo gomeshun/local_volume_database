@@ -35,6 +35,7 @@ export type KinematicsManifest = {
   sourceInputSha256: string;
   sourceSnapshotModifiedAt: string;
   publicDataSha256: string;
+  columnDictionaryPath: string;
   columns: string[];
   totalRecords: number;
   chunkSize: number;

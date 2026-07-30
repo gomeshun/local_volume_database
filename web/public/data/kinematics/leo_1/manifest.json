@@ -5,6 +5,7 @@
   "sourceInputSha256": "6c99b241bce399475f0b5eab046b96a5f9a6202c4b458c8313fb8a9d4b8041a8",
   "sourceSnapshotModifiedAt": "2026-07-30T15:04:36.135Z",
   "publicDataSha256": "7d13e43bfef1464d1384560030869863d3e2626ffc69954bfe9b56457f4990bd",
+  "columnDictionaryPath": "/data/kinematics/columns.json",
   "columns": [
     "object_key",
     "object_name",

@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "title": "LVDB normalized member-kinematics column dictionary",
+  "missingValue": "An empty field means that the value was not reported or is unavailable for that source record. It must not be interpreted as zero, false, or non-membership.",
+  "columns": [
+    {
+      "column": "object_key",
+      "label": "Object key",
+      "dataType": "string",
+      "unit": "",
+      "description": "Stable machine-readable LVDB identifier for the dwarf galaxy or stellar system.",
+      "notes": "Matches the key used by the LVDB object table and object-page URL."
+    },
+    {
+      "column": "object_name",
+      "label": "Object name",
+      "dataType": "string",
+      "unit": "",
+      "description": "Human-readable LVDB name of the dwarf galaxy or stellar system.",
+      "notes": ""
+    },
+    {
+      "column": "source_kind",
+      "label": "Source kind",
+      "dataType": "enum",
+      "unit": "",
+      "description": "Broad measurement family assigned to the source dataset.",
+      "notes": "Current values include spectroscopy and proper_motion. This classification does not guarantee that every record contains the corresponding measurement."
+    },
+    {
+      "column": "source_provider",
+      "label": "Source provider",
+      "dataType": "enum",
+      "unit": "",
+      "description": "Identifier for the service or file format from which the source dataset was retrieved.",
+      "notes": "Examples include vizier, aas_iop_mrt, zenodo_zip, and gaia_tap."
+    },
+    {
+      "column": "source_ref",
+      "label": "Source reference",
+      "dataType": "string",
+      "unit": "",
+      "description": "Literature-reference label for the source dataset.",
+      "notes": "Usually ends with an ADS bibcode when one is available."
+    },
+    {
+      "column": "source_name",
+      "label": "Source dataset name",
+      "dataType": "string",
+      "unit": "",
+      "description": "Stable configured identifier for the normalized source dataset.",
+      "notes": "Use together with source_provider and source_kind to identify a dataset."
+    },
+    {
+      "column": "source_table",
+      "label": "Source table",
+      "dataType": "string",
+      "unit": "",
+      "description": "Provider-side catalog, table, or resource identifier used for retrieval.",
+      "notes": ""
+    },
+    {
+      "column": "source_url",
+      "label": "Source URL",
+      "dataType": "URL",
+      "unit": "",
+      "description": "Retrieval or landing-page URL recorded for the source dataset.",
+      "notes": "The URL may point to a service query, downloadable file, or archive page."
+    },
+    {
+      "column": "source_row",
+      "label": "Normalized source row",
+      "dataType": "integer",
+      "unit": "",
+      "description": "Zero-based row index assigned while normalizing this source dataset.",
+      "notes": "It is a provenance locator within the normalized source and is not necessarily the row number printed in the publication."
+    },
+    {
+      "column": "star_id",
+      "label": "Source star identifier",
+      "dataType": "string",
+      "unit": "",
+      "description": "Star or observation identifier supplied by the source dataset.",
+      "notes": "Identifier namespaces are source-specific and are not guaranteed to match across datasets."
+    },
+    {
+      "column": "ra_deg",
+      "label": "Right ascension",
+      "dataType": "float",
+      "unit": "deg",
+      "description": "Sky right ascension supplied by the source and normalized to decimal degrees.",
+      "notes": "Consult the cited source for the exact reference frame and epoch."
+    },
+    {
+      "column": "dec_deg",
+      "label": "Declination",
+      "dataType": "float",
+      "unit": "deg",
+      "description": "Sky declination supplied by the source and normalized to decimal degrees.",
+      "notes": "Consult the cited source for the exact reference frame and epoch."
+    },
+    {
+      "column": "vlos_kms",
+      "label": "Line-of-sight velocity",
+      "dataType": "float",
+      "unit": "km/s",
+      "description": "Line-of-sight velocity reported for this source record.",
+      "notes": "Reference frame, zero point, and sign convention follow the cited source; many spectroscopy catalogs report heliocentric velocity, but this is not imposed globally."
+    },
+    {
+      "column": "vlos_err_kms",
+      "label": "Line-of-sight velocity uncertainty",
+      "dataType": "float",
+      "unit": "km/s",
+      "description": "Uncertainty reported for vlos_kms.",
+      "notes": "Usually a one-standard-deviation uncertainty; the provider definition is authoritative."
+    },
+    {
+      "column": "pmra_masyr",
+      "label": "Proper motion in right ascension",
+      "dataType": "float",
+      "unit": "mas/yr",
+      "description": "Proper motion in right ascension using the standard cos(declination)-included quantity mu_alpha_star.",
+      "notes": "Equivalent to d(alpha)/dt times cos(declination). Consult the cited source for frame, epoch, and calibration details."
+    },
+    {
+      "column": "pmra_err_masyr",
+      "label": "Right-ascension proper-motion uncertainty",
+      "dataType": "float",
+      "unit": "mas/yr",
+      "description": "Uncertainty reported for pmra_masyr.",
+      "notes": "Usually a one-standard-deviation marginal uncertainty; covariance with pmdec is not included in this public table."
+    },
+    {
+      "column": "pmdec_masyr",
+      "label": "Proper motion in declination",
+      "dataType": "float",
+      "unit": "mas/yr",
+      "description": "Proper motion in declination reported for this source record.",
+      "notes": "Consult the cited source for frame, epoch, and calibration details."
+    },
+    {
+      "column": "pmdec_err_masyr",
+      "label": "Declination proper-motion uncertainty",
+      "dataType": "float",
+      "unit": "mas/yr",
+      "description": "Uncertainty reported for pmdec_masyr.",
+      "notes": "Usually a one-standard-deviation marginal uncertainty; covariance with pmra is not included in this public table."
+    },
+    {
+      "column": "membership_probability",
+      "label": "Membership probability",
+      "dataType": "float",
+      "unit": "",
+      "description": "Membership probability associated with this record, normalized to the interval from 0 to 1 when available.",
+      "notes": "Selection models and interpretations differ across sources. A blank value is unknown, not zero."
+    },
+    {
+      "column": "membership_probability_origin",
+      "label": "Membership-probability origin",
+      "dataType": "enum",
+      "unit": "",
+      "description": "Provenance of membership_probability.",
+      "notes": "reported means present on this provider row; same_star means copied only when all reported values for the same source and star ID agree; seed_source means inherited by a Gaia row from its cited input record. Blank accompanies a blank probability."
+    },
+    {
+      "column": "membership_flag",
+      "label": "Membership flag",
+      "dataType": "string",
+      "unit": "",
+      "description": "Source-specific discrete membership classification associated with this record.",
+      "notes": "Values such as 0 and 1 must be interpreted using the cited source. A blank value is unknown and must not be treated as a non-member flag."
+    },
+    {
+      "column": "membership_flag_origin",
+      "label": "Membership-flag origin",
+      "dataType": "enum",
+      "unit": "",
+      "description": "Provenance of membership_flag.",
+      "notes": "reported means present on this provider row; same_star means copied only when all reported values for the same source and star ID agree; seed_source means inherited by a Gaia row from its cited input record. Blank accompanies a blank flag."
+    },
+    {
+      "column": "feh",
+      "label": "Metallicity [Fe/H]",
+      "dataType": "float",
+      "unit": "dex",
+      "description": "Logarithmic iron abundance relative to hydrogen and the solar abundance ratio, [Fe/H].",
+      "notes": "Metallicity scale and analysis method follow the cited source."
+    },
+    {
+      "column": "feh_err",
+      "label": "Metallicity uncertainty",
+      "dataType": "float",
+      "unit": "dex",
+      "description": "Uncertainty reported for feh.",
+      "notes": "Usually a one-standard-deviation uncertainty; the provider definition is authoritative."
+    }
+  ]
+}

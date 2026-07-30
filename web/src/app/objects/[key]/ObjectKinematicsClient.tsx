@@ -15,6 +15,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { KinematicObjectSummary } from "@/generated/kinematics_summary";
 import { assetPath } from "@/lib/assetPath";
 import {
+  getKinematicsColumnDefinition,
+  KINEMATICS_COLUMN_DICTIONARY,
+} from "@/lib/kinematicsColumns";
+import {
   chunkDatasetId,
   KINEMATICS_DATASET_COLORS,
   rowDatasetId,
@@ -59,18 +63,54 @@ function csvCell(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
 }
 
+function triggerCsvDownload(lines: string[], fileName: string) {
+  const blob = new Blob([`${lines.join("\n")}\n`], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
 function downloadCsv(columns: string[], rows: PublicKinematicsRow[], objectKey: string) {
   const lines = [
     columns.map(csvCell).join(","),
     ...rows.map((row) => columns.map((column) => csvCell(row[column] ?? "")).join(",")),
   ];
-  const blob = new Blob([`${lines.join("\n")}\n`], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `${objectKey}_kinematics_selected.csv`;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  triggerCsvDownload(lines, `${objectKey}_kinematics_selected.csv`);
+}
+
+function downloadColumnGuideCsv(columns: string[], objectKey: string) {
+  const guideColumns = [
+    "column",
+    "label",
+    "data_type",
+    "unit",
+    "description",
+    "notes",
+    "missing_value",
+  ];
+  const lines = [
+    guideColumns.map(csvCell).join(","),
+    ...columns.map((column) => {
+      const definition = getKinematicsColumnDefinition(column);
+      return [
+        column,
+        definition?.label ?? "",
+        definition?.dataType ?? "",
+        definition?.unit ?? "",
+        definition?.description ?? "",
+        definition?.notes ?? "",
+        KINEMATICS_COLUMN_DICTIONARY.missingValue,
+      ]
+        .map(csvCell)
+        .join(",");
+    }),
+  ];
+  triggerCsvDownload(lines, `${objectKey}_kinematics_columns.csv`);
 }
 
 export default function ObjectKinematicsClient({
@@ -485,6 +525,15 @@ export default function ObjectKinematicsClient({
                 >
                   Download selected CSV
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    downloadColumnGuideCsv(manifest.columns, object.key)
+                  }
+                >
+                  Download column guide
+                </Button>
                 <span className="text-sm text-muted-foreground" aria-live="polite">
                   {readyDatasetEntries.length.toLocaleString()} /{" "}
                   {selectedDatasetEntries.length.toLocaleString()} selected
@@ -647,6 +696,87 @@ export default function ObjectKinematicsClient({
                   </TableBody>
                 </Table>
               </div>
+
+              <details className="mt-4 rounded-lg border">
+                <summary className="cursor-pointer px-4 py-3 text-sm font-medium">
+                  Column guide for the record table and downloaded CSV (
+                  {manifest.columns.length})
+                </summary>
+                <div className="border-t p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <p className="max-w-4xl text-sm text-muted-foreground">
+                      Columns appear in the same order in the browser table and
+                      selected-data CSV.{" "}
+                      {KINEMATICS_COLUMN_DICTIONARY.missingValue}
+                    </p>
+                    <Button variant="outline" size="sm" asChild>
+                      <a
+                        href={assetPath(
+                          manifest.columnDictionaryPath ||
+                            "/data/kinematics/columns.json",
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open machine-readable JSON
+                      </a>
+                    </Button>
+                  </div>
+                  <div className="mt-4 overflow-hidden rounded-lg border">
+                    <Table wrapperClassName="max-h-[60vh]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="sticky top-0 bg-background">
+                            Column
+                          </TableHead>
+                          <TableHead className="sticky top-0 bg-background">
+                            Type
+                          </TableHead>
+                          <TableHead className="sticky top-0 bg-background">
+                            Unit
+                          </TableHead>
+                          <TableHead className="sticky top-0 bg-background">
+                            Meaning
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {manifest.columns.map((column) => {
+                          const definition =
+                            getKinematicsColumnDefinition(column);
+                          return (
+                            <TableRow key={column}>
+                              <TableCell className="whitespace-nowrap font-mono text-xs">
+                                {column}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {definition?.dataType || "—"}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {definition?.unit || "—"}
+                              </TableCell>
+                              <TableCell className="min-w-96">
+                                <div className="font-medium">
+                                  {definition?.label || column}
+                                </div>
+                                <div className="mt-1 text-sm">
+                                  {definition?.description ||
+                                    "No description is available."}
+                                </div>
+                                {definition?.notes ? (
+                                  <div className="mt-1 text-xs text-muted-foreground">
+                                    {definition.notes}
+                                  </div>
+                                ) : null}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </details>
             </CardContent>
           </Card>
 
