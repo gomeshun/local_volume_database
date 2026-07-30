@@ -241,12 +241,12 @@ export function MemberKinematicsTable({
             setQuery(event.target.value);
             setPageIndex(0);
           }}
-          placeholder="Search loaded records or sources…"
-          aria-label="Search loaded kinematic records"
+          placeholder="Search selected-dataset records or sources…"
+          aria-label="Search selected kinematic records"
         />
 
         <div className="text-sm text-muted-foreground">
-          Showing {filteredRows.length.toLocaleString()} loaded records
+          Showing {filteredRows.length.toLocaleString()} selected-dataset records
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

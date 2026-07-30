@@ -4,17 +4,25 @@ import { useMemo, useState } from "react";
 import { makeKinematicsRowId } from "@/components/MemberKinematicsTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  rowDatasetId,
+  type KinematicsDatasetStyle,
+} from "@/lib/kinematicsDatasets";
 import type { PublicKinematicsRow } from "@/types/kinematics";
 
 type PlotPoint = {
   id: string;
   row: PublicKinematicsRow;
+  datasetId: string;
+  color: string;
   x: number;
   y: number;
 };
 
 type HistogramValue = {
   id: string;
+  datasetId: string;
+  color: string;
   value: number;
 };
 
@@ -99,12 +107,24 @@ function ticks(domain: [number, number], count = 5): number[] {
   );
 }
 
-function formatTick(value: number): string {
+function formatTick(value: number, resolution?: number): string {
   const absolute = Math.abs(value);
   if (absolute >= 10_000 || (absolute > 0 && absolute < 0.001)) {
     return value.toExponential(1);
   }
-  const digits = absolute >= 100 ? 0 : absolute >= 10 ? 1 : absolute >= 1 ? 2 : 3;
+  const digits =
+    resolution && resolution > 0
+      ? Math.min(
+          6,
+          Math.max(0, Math.ceil(-Math.log10(resolution)) + 1),
+        )
+      : absolute >= 100
+        ? 0
+        : absolute >= 10
+          ? 1
+          : absolute >= 1
+            ? 2
+            : 3;
   return value.toFixed(digits).replace(/\.?0+$/, "");
 }
 
@@ -173,12 +193,37 @@ function buildHistogram(values: number[]): {
   return { bins, domain: [minimum, maximum], binWidth };
 }
 
+function evenlySamplePoints(points: PlotPoint[], count: number): PlotPoint[] {
+  if (points.length <= count) return points;
+  return Array.from(
+    { length: count },
+    (_, index) => points[Math.floor((index * points.length) / count)],
+  );
+}
+
 function samplePoints(points: PlotPoint[], selectedId: string | null): PlotPoint[] {
   if (points.length <= MAX_POINTS) return points;
-  const sampled = Array.from(
-    { length: MAX_POINTS },
-    (_, index) => points[Math.floor((index * points.length) / MAX_POINTS)],
+  const pointsByDataset = new Map<string, PlotPoint[]>();
+  points.forEach((point) => {
+    const group = pointsByDataset.get(point.datasetId) ?? [];
+    group.push(point);
+    pointsByDataset.set(point.datasetId, group);
+  });
+  const groups = Array.from(pointsByDataset.values());
+  const equalShare = Math.max(1, Math.floor(MAX_POINTS / groups.length));
+  const sampled = groups.flatMap((group) =>
+    evenlySamplePoints(group, Math.min(group.length, equalShare)),
   );
+  if (sampled.length < MAX_POINTS) {
+    const sampledIds = new Set(sampled.map((point) => point.id));
+    const remaining = points.filter((point) => !sampledIds.has(point.id));
+    sampled.push(
+      ...evenlySamplePoints(
+        remaining,
+        Math.min(remaining.length, MAX_POINTS - sampled.length),
+      ),
+    );
+  }
   if (selectedId && !sampled.some((point) => point.id === selectedId)) {
     const selected = points.find((point) => point.id === selectedId);
     if (selected) sampled[sampled.length - 1] = selected;
@@ -193,6 +238,7 @@ function ScatterPlot({
   points,
   selectedId,
   onToggleSelect,
+  reverseX = false,
 }: {
   title: string;
   xLabel: string;
@@ -200,13 +246,14 @@ function ScatterPlot({
   points: PlotPoint[];
   selectedId: string | null;
   onToggleSelect: (row: PublicKinematicsRow, rowId: string) => void;
+  reverseX?: boolean;
 }) {
   if (points.length === 0) {
     return (
       <div>
         <div className="mb-1 text-sm font-medium">{title}</div>
         <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-          No loaded records contain both selected quantities.
+          No selected-dataset records contain both quantities.
         </div>
       </div>
     );
@@ -217,8 +264,12 @@ function ScatterPlot({
   const yDomain = extent(points.map((point) => point.y));
   const plotWidth = WIDTH - MARGIN.left - MARGIN.right;
   const plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
-  const xPosition = (value: number) =>
-    MARGIN.left + ((value - xDomain[0]) / (xDomain[1] - xDomain[0])) * plotWidth;
+  const xTickResolution = (xDomain[1] - xDomain[0]) / 4;
+  const yTickResolution = (yDomain[1] - yDomain[0]) / 4;
+  const xPosition = (value: number) => {
+    const fraction = (value - xDomain[0]) / (xDomain[1] - xDomain[0]);
+    return MARGIN.left + (reverseX ? 1 - fraction : fraction) * plotWidth;
+  };
   const yPosition = (value: number) =>
     MARGIN.top + plotHeight - ((value - yDomain[0]) / (yDomain[1] - yDomain[0])) * plotHeight;
 
@@ -234,11 +285,11 @@ function ScatterPlot({
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="h-auto w-full rounded-md border bg-background"
         role="img"
-        aria-label={`${title}, ${points.length} loaded records`}
+        aria-label={`${title}, ${points.length} selected-dataset records`}
       >
         <title>{title}</title>
         <desc>
-          Scatter plot of {yLabel} against {xLabel} for {points.length} loaded records.
+          Scatter plot of {yLabel} against {xLabel} for {points.length} selected-dataset records.
         </desc>
         <line
           x1={MARGIN.left}
@@ -269,7 +320,7 @@ function ScatterPlot({
               textAnchor="middle"
               className="fill-muted-foreground text-[10px]"
             >
-              {formatTick(tick)}
+              {formatTick(tick, xTickResolution)}
             </text>
           </g>
         ))}
@@ -288,7 +339,7 @@ function ScatterPlot({
               textAnchor="end"
               className="fill-muted-foreground text-[10px]"
             >
-              {formatTick(tick)}
+              {formatTick(tick, yTickResolution)}
             </text>
           </g>
         ))}
@@ -300,11 +351,12 @@ function ScatterPlot({
               cx={xPosition(point.x)}
               cy={yPosition(point.y)}
               r={selected ? 5 : 2.5}
-              className={
-                selected
-                  ? "cursor-pointer fill-orange-500 stroke-background stroke-2"
-                  : "cursor-pointer fill-indigo-500/65 hover:fill-orange-500"
-              }
+              className="cursor-pointer stroke-background hover:stroke-foreground"
+              style={{
+                fill: selected ? "#f97316" : point.color,
+                fillOpacity: selected ? 1 : 0.68,
+                strokeWidth: selected ? 2 : 0.45,
+              }}
               role="button"
               tabIndex={0}
               aria-label={`${point.row.star_id || "record"}: ${xLabel} ${point.x}, ${yLabel} ${point.y}`}
@@ -366,7 +418,7 @@ function VelocityHistogram({
       <div>
         <div className="mb-1 text-sm font-medium">Line-of-sight velocity distribution</div>
         <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-          No loaded records contain a line-of-sight velocity.
+          No selected-dataset records contain a line-of-sight velocity.
         </div>
       </div>
     );
@@ -375,15 +427,35 @@ function VelocityHistogram({
   const { bins, domain, binWidth } = histogram;
   const plotWidth = WIDTH - MARGIN.left - MARGIN.right;
   const plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
-  const maximumCount = Math.max(...bins.map((bin) => bin.count));
-  const selectedValue = values.find(({ id }) => id === selectedId)?.value ?? null;
-  const selectedBinIndex =
-    selectedValue === null
-      ? -1
+  const binIndexForValue = (value: number) =>
+    bins.length === 1
+      ? 0
       : Math.min(
           bins.length - 1,
-          Math.max(0, Math.floor((selectedValue - domain[0]) / binWidth)),
+          Math.max(0, Math.floor((value - domain[0]) / binWidth)),
         );
+  const seriesByDataset = new Map<
+    string,
+    { color: string; counts: number[]; total: number }
+  >();
+  values.forEach((entry) => {
+    const series = seriesByDataset.get(entry.datasetId) ?? {
+      color: entry.color,
+      counts: new Array(bins.length).fill(0),
+      total: 0,
+    };
+    series.counts[binIndexForValue(entry.value)] += 1;
+    series.total += 1;
+    seriesByDataset.set(entry.datasetId, series);
+  });
+  const datasetSeries = Array.from(seriesByDataset.entries())
+    .map(([datasetId, series]) => ({ datasetId, ...series }))
+    .sort((left, right) => right.total - left.total);
+  const maximumCount = Math.max(
+    1,
+    ...datasetSeries.flatMap((series) => series.counts),
+  );
+  const selectedValue = values.find(({ id }) => id === selectedId)?.value ?? null;
   const xPosition = (value: number) =>
     MARGIN.left + ((value - domain[0]) / (domain[1] - domain[0])) * plotWidth;
   const yPosition = (count: number) =>
@@ -408,11 +480,11 @@ function VelocityHistogram({
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="h-auto w-full rounded-md border bg-background"
         role="img"
-        aria-label={`Line-of-sight velocity histogram, ${values.length} loaded records in ${bins.length} bins`}
+        aria-label={`Line-of-sight velocity histogram, ${values.length} selected-dataset records in ${bins.length} bins`}
       >
         <title>Line-of-sight velocity distribution</title>
         <desc>
-          Histogram of line-of-sight velocity for {values.length} loaded records in {bins.length} automatically selected bins.
+          Histogram of line-of-sight velocity for {values.length} selected-dataset records in {bins.length} automatically selected bins.
         </desc>
         <line
           x1={MARGIN.left}
@@ -428,30 +500,37 @@ function VelocityHistogram({
           y2={MARGIN.top + plotHeight}
           className="stroke-border"
         />
-        {bins.map((bin, index) => {
-          const x = xPosition(bin.lower);
-          const upper = index === bins.length - 1 ? domain[1] : bin.upper;
-          const width = Math.max(1, xPosition(upper) - x);
-          const y = yPosition(bin.count);
-          return (
-            <rect
-              key={`${bin.lower}:${bin.upper}`}
-              x={x + 0.5}
-              y={y}
-              width={Math.max(0.5, width - 1)}
-              height={MARGIN.top + plotHeight - y}
-              className={
-                index === selectedBinIndex
-                  ? "fill-orange-500/75"
-                  : "fill-indigo-500/65"
-              }
-            >
-              <title>
-                {formatTick(bin.lower)} to {formatTick(bin.upper)} km/s: {bin.count} records
-              </title>
-            </rect>
-          );
-        })}
+        {datasetSeries.flatMap((series) =>
+          bins.map((bin, index) => {
+            const count = series.counts[index];
+            if (count === 0) return null;
+            const x = xPosition(bin.lower);
+            const upper = index === bins.length - 1 ? domain[1] : bin.upper;
+            const width = Math.max(1, xPosition(upper) - x);
+            const y = yPosition(count);
+            return (
+              <rect
+                key={`${series.datasetId}:${bin.lower}:${bin.upper}`}
+                x={x + 0.5}
+                y={y}
+                width={Math.max(0.5, width - 1)}
+                height={MARGIN.top + plotHeight - y}
+                style={{
+                  fill: series.color,
+                  fillOpacity: 0.24,
+                  stroke: series.color,
+                  strokeOpacity: 0.85,
+                  strokeWidth: 0.8,
+                }}
+              >
+                <title>
+                  {formatTick(bin.lower)} to {formatTick(bin.upper)} km/s:{" "}
+                  {count} records in this dataset
+                </title>
+              </rect>
+            );
+          }),
+        )}
         {ticks(domain).map((tick) => (
           <g key={`x-${tick}`}>
             <line
@@ -467,7 +546,7 @@ function VelocityHistogram({
               textAnchor="middle"
               className="fill-muted-foreground text-[10px]"
             >
-              {formatTick(tick)}
+              {formatTick(tick, (domain[1] - domain[0]) / 4)}
             </text>
           </g>
         ))}
@@ -515,11 +594,12 @@ function VelocityHistogram({
           transform={`rotate(-90 14 ${MARGIN.top + plotHeight / 2})`}
           className="fill-muted-foreground text-[11px]"
         >
-          records
+          records per dataset
         </text>
       </svg>
       <p className="mt-1 text-xs text-muted-foreground">
-        {bins.length} automatic bins (Δv ≈ {formatTick(binWidth)} km/s); orange marks the selected record.
+        Dataset distributions share {bins.length} automatic bins (Δv ≈{" "}
+        {formatTick(binWidth)} km/s); orange marks the selected record.
       </p>
     </div>
   );
@@ -573,15 +653,21 @@ function preferredAvailableAxis(
 
 export function KinematicsPlots({
   rows,
+  datasets,
   selectedId,
   onToggleSelect,
 }: {
   rows: PublicKinematicsRow[];
+  datasets: KinematicsDatasetStyle[];
   selectedId: string | null;
   onToggleSelect: (row: PublicKinematicsRow, rowId: string) => void;
 }) {
   const [xAxis, setXAxis] = useState("feh");
   const [yAxis, setYAxis] = useState("vlos_kms");
+  const datasetStyleById = useMemo(
+    () => new Map(datasets.map((dataset) => [dataset.id, dataset])),
+    [datasets],
+  );
 
   const axisCounts = useMemo(
     () =>
@@ -625,33 +711,82 @@ export function KinematicsPlots({
       rows.flatMap((row, index) => {
         const x = finiteNumber(row.pmra_masyr);
         const y = finiteNumber(row.pmdec_masyr);
+        const datasetId = rowDatasetId(row);
         return x !== null && y !== null
-          ? [{ id: makeKinematicsRowId(row, index), row, x, y }]
+          ? [{
+              id: makeKinematicsRowId(row, index),
+              row,
+              datasetId,
+              color: datasetStyleById.get(datasetId)?.color ?? "#64748b",
+              x,
+              y,
+            }]
           : [];
       }),
-    [rows],
+    [datasetStyleById, rows],
+  );
+  const skyPositionPoints = useMemo(
+    () =>
+      rows.flatMap((row, index) => {
+        const x = finiteNumber(row.ra_deg);
+        const y = finiteNumber(row.dec_deg);
+        const datasetId = rowDatasetId(row);
+        return x !== null && y !== null
+          ? [{
+              id: makeKinematicsRowId(row, index),
+              row,
+              datasetId,
+              color: datasetStyleById.get(datasetId)?.color ?? "#64748b",
+              x,
+              y,
+            }]
+          : [];
+      }),
+    [datasetStyleById, rows],
   );
   const velocityValues = useMemo(
     () =>
       rows.flatMap((row, index) => {
         const value = finiteNumber(row.vlos_kms);
+        const datasetId = rowDatasetId(row);
         return value === null
           ? []
-          : [{ id: makeKinematicsRowId(row, index), value }];
+          : [{
+              id: makeKinematicsRowId(row, index),
+              datasetId,
+              color: datasetStyleById.get(datasetId)?.color ?? "#64748b",
+              value,
+            }];
       }),
-    [rows],
+    [datasetStyleById, rows],
   );
   const customPoints = useMemo(
     () =>
       rows.flatMap((row, index) => {
         const x = finiteNumber(row[effectiveXAxis]);
         const y = finiteNumber(row[effectiveYAxis]);
+        const datasetId = rowDatasetId(row);
         return x !== null && y !== null
-          ? [{ id: makeKinematicsRowId(row, index), row, x, y }]
+          ? [{
+              id: makeKinematicsRowId(row, index),
+              row,
+              datasetId,
+              color: datasetStyleById.get(datasetId)?.color ?? "#64748b",
+              x,
+              y,
+            }]
           : [];
       }),
-    [effectiveXAxis, effectiveYAxis, rows],
+    [datasetStyleById, effectiveXAxis, effectiveYAxis, rows],
   );
+  const datasetRecordCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    rows.forEach((row) => {
+      const datasetId = rowDatasetId(row);
+      counts.set(datasetId, (counts.get(datasetId) ?? 0) + 1);
+    });
+    return counts;
+  }, [rows]);
 
   const xLabel =
     AXIS_OPTIONS.find((option) => option.key === effectiveXAxis)?.label ??
@@ -663,12 +798,40 @@ export function KinematicsPlots({
   return (
     <Card className="mt-4">
       <CardHeader>
-        <CardTitle>Loaded-record diagnostics</CardTitle>
+        <CardTitle>Selected-dataset diagnostics</CardTitle>
         <CardDescription>
-          All panels use currently loaded records, not de-duplicated stars. Click a scatter point to link the selection with the table and sky view; source-specific selection functions remain in effect.
+          Colors identify datasets in every panel. Records are not de-duplicated
+          across providers. Click a scatter point to link it with the table and
+          sky view.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
+      <CardContent>
+        <div
+          className="mb-5 flex flex-wrap gap-x-4 gap-y-2 text-xs"
+          aria-label="Dataset color legend"
+        >
+          {datasets.map((dataset) => (
+            <span key={dataset.id} className="inline-flex items-center gap-1.5">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: dataset.color }}
+                aria-hidden="true"
+              />
+              <span>
+                {dataset.label} (
+                {(datasetRecordCounts.get(dataset.id) ?? 0).toLocaleString()})
+              </span>
+            </span>
+          ))}
+          <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+            <span
+              className="h-2.5 w-2.5 rounded-full bg-orange-500"
+              aria-hidden="true"
+            />
+            selected record
+          </span>
+        </div>
+        <div className="grid gap-5 lg:grid-cols-2">
         <ScatterPlot
           title="Proper-motion plane"
           xLabel="pmRA (mas/yr)"
@@ -678,7 +841,16 @@ export function KinematicsPlots({
           onToggleSelect={onToggleSelect}
         />
         <VelocityHistogram values={velocityValues} selectedId={selectedId} />
-        <div className="lg:col-span-2 2xl:col-span-1">
+        <ScatterPlot
+          title="Sky-position distribution"
+          xLabel="RA (deg; increases left)"
+          yLabel="Dec (deg)"
+          points={skyPositionPoints}
+          selectedId={selectedId}
+          onToggleSelect={onToggleSelect}
+          reverseX
+        />
+        <div>
           <div className="mb-2 flex flex-col gap-2 sm:flex-row">
             <AxisSelector
               label="X axis"
@@ -703,6 +875,7 @@ export function KinematicsPlots({
             selectedId={selectedId}
             onToggleSelect={onToggleSelect}
           />
+        </div>
         </div>
       </CardContent>
     </Card>

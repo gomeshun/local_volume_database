@@ -48,9 +48,15 @@ npm run refresh:simbad:retry-bad
   values; blanks remain unknown rather than being converted to non-members.
 - `src/generated/datasets_summary.ts` and
   `src/generated/kinematics_summary.ts` contain only route metadata.
-- Object diagnostics include the proper-motion plane, an automatically binned
-  line-of-sight velocity histogram, and a selectable-axis scatter plot. They
-  describe loaded records rather than a de-duplicated stellar sample.
+- Object pages expose source datasets—not transfer chunks—as reversible
+  checkbox selections. Plotting, the record table, the sky view, and CSV export
+  share the same selection; cached datasets can be removed and re-added without
+  another request.
+- Object diagnostics use a stable color per dataset and include the
+  proper-motion plane, RA–Dec sky-position distribution, an automatically
+  binned line-of-sight velocity histogram, and a selectable-axis scatter plot.
+  They describe selected source records rather than a de-duplicated stellar
+  sample.
 - Object-list coverage counts require actual finite `vlos`, pmRA, and pmDec
   values; a row is not counted merely because its source is categorized as
   spectroscopy or proper motion.

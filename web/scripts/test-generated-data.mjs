@@ -103,6 +103,18 @@ async function testKinematics() {
       manifest.publicDataSha256,
       `${directory.name}: public data checksum`,
     );
+    const chunkRecordsBySource = new Map();
+    for (const chunk of manifest.chunks) {
+      const key = [
+        chunk.sourceKind,
+        chunk.sourceProvider,
+        chunk.sourceName,
+      ].join("\0");
+      chunkRecordsBySource.set(
+        key,
+        (chunkRecordsBySource.get(key) ?? 0) + chunk.recordCount,
+      );
+    }
     const sourceStats = new Map();
     for (const row of objectRows) {
       const key = [row.source_kind, row.source_provider, row.source_name].join("\0");
@@ -128,12 +140,23 @@ async function testKinematics() {
         row.membership_flag_origin === "same_star" ? 1 : 0;
       sourceStats.set(key, stats);
     }
+    const manifestSourceKeys = new Set();
     for (const source of manifest.sources) {
       const key = [
         source.sourceKind,
         source.sourceProvider,
         source.sourceName,
       ].join("\0");
+      assert.ok(
+        !manifestSourceKeys.has(key),
+        `${directory.name}: duplicate source dataset ${key}`,
+      );
+      manifestSourceKeys.add(key);
+      assert.equal(
+        chunkRecordsBySource.get(key),
+        source.recordCount,
+        `${directory.name}: source dataset transfer coverage ${key}`,
+      );
       const stats = sourceStats.get(key);
       assert.ok(stats, `${directory.name}: source statistics`);
       assert.equal(source.recordCount, stats.records, `${key}: record coverage`);
@@ -173,6 +196,11 @@ async function testKinematics() {
         `${key}: inherited membership flag coverage`,
       );
     }
+    assert.equal(
+      chunkRecordsBySource.size,
+      manifest.sources.length,
+      `${directory.name}: every transfer group maps to one source dataset`,
+    );
     const summary = summaryByKey.get(directory.name);
     assert.ok(summary, `${directory.name}: generated summary`);
     assert.equal(

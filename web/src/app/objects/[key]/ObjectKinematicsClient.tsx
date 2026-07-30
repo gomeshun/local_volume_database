@@ -10,17 +10,34 @@ import {
 import { KinematicsPlots } from "@/components/KinematicsPlots";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { KinematicObjectSummary } from "@/generated/kinematics_summary";
 import { assetPath } from "@/lib/assetPath";
+import {
+  chunkDatasetId,
+  KINEMATICS_DATASET_COLORS,
+  rowDatasetId,
+  sourceDatasetId,
+  sourceDatasetLabel,
+  type KinematicsDatasetStyle,
+} from "@/lib/kinematicsDatasets";
 import type {
+  KinematicsChunk,
   KinematicsChunkPayload,
   KinematicsManifest,
+  KinematicsSource,
   PublicKinematicsRow,
 } from "@/types/kinematics";
 
 const MAX_ALADIN_SOURCES = 5000;
+
+type DatasetEntry = {
+  id: string;
+  source: KinematicsSource;
+  chunks: KinematicsChunk[];
+  style: KinematicsDatasetStyle;
+};
 
 function formatValue(value: string, unit?: string): string {
   if (!value) return "—";
@@ -51,7 +68,7 @@ function downloadCsv(columns: string[], rows: PublicKinematicsRow[], objectKey: 
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `${objectKey}_kinematics_loaded.csv`;
+  anchor.download = `${objectKey}_kinematics_selected.csv`;
   anchor.click();
   URL.revokeObjectURL(url);
 }
@@ -62,16 +79,18 @@ export default function ObjectKinematicsClient({
   object: KinematicObjectSummary;
 }) {
   const chunkCacheRef = useRef(new Map<string, PublicKinematicsRow[]>());
-  const failedPathsRef = useRef(new Set<string>());
+  const inFlightPathsRef = useRef(new Map<string, Promise<void>>());
   const [cacheVersion, setCacheVersion] = useState(0);
   const [manifest, setManifest] = useState<KinematicsManifest | null>(null);
   const [manifestError, setManifestError] = useState<string | null>(null);
   const [loadingManifest, setLoadingManifest] = useState(object.totalRecords > 0);
-  const [loadingChunks, setLoadingChunks] = useState(false);
-  const [chunkError, setChunkError] = useState<string | null>(null);
-  const [kindFilter, setKindFilter] = useState("all");
-  const [providerFilter, setProviderFilter] = useState("all");
-  const [sourceFilter, setSourceFilter] = useState("all");
+  const [selectedDatasetIds, setSelectedDatasetIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [loadingDatasetIds, setLoadingDatasetIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [datasetErrors, setDatasetErrors] = useState<Record<string, string>>({});
   const [selection, setSelection] = useState<{
     id: string;
     row: PublicKinematicsRow;
@@ -94,6 +113,13 @@ export default function ObjectKinematicsClient({
         if (payload.objectKey !== object.key) {
           throw new Error("Generated manifest does not match this object.");
         }
+        chunkCacheRef.current.clear();
+        inFlightPathsRef.current.clear();
+        setCacheVersion(0);
+        setSelectedDatasetIds(new Set());
+        setLoadingDatasetIds(new Set());
+        setDatasetErrors({});
+        setSelection(null);
         setManifest(payload);
       })
       .catch((error: unknown) => {
@@ -106,145 +132,180 @@ export default function ObjectKinematicsClient({
     return () => controller.abort();
   }, [object.key, object.manifestPath]);
 
-  const kindOptions = useMemo(
-    () =>
-      Array.from(new Set(manifest?.sources.map((source) => source.sourceKind) ?? [])).sort(),
-    [manifest],
+  const datasetEntries = useMemo<DatasetEntry[]>(() => {
+    if (!manifest) return [];
+    const chunksByDataset = new Map<string, KinematicsChunk[]>();
+    manifest.chunks.forEach((chunk) => {
+      const id = chunkDatasetId(chunk);
+      const chunks = chunksByDataset.get(id) ?? [];
+      chunks.push(chunk);
+      chunksByDataset.set(id, chunks);
+    });
+    return manifest.sources.map((source, index) => {
+      const id = sourceDatasetId(source);
+      return {
+        id,
+        source,
+        chunks: chunksByDataset.get(id) ?? [],
+        style: {
+          id,
+          label: sourceDatasetLabel(source),
+          color:
+            KINEMATICS_DATASET_COLORS[
+              index % KINEMATICS_DATASET_COLORS.length
+            ],
+        },
+      };
+    });
+  }, [manifest]);
+  const datasetEntryById = useMemo(
+    () => new Map(datasetEntries.map((entry) => [entry.id, entry])),
+    [datasetEntries],
   );
-  const providerOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          (manifest?.sources ?? [])
-            .filter((source) => kindFilter === "all" || source.sourceKind === kindFilter)
-            .map((source) => source.sourceProvider),
-        ),
-      ).sort(),
-    [kindFilter, manifest],
-  );
-  const sourceOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          (manifest?.sources ?? [])
-            .filter((source) => kindFilter === "all" || source.sourceKind === kindFilter)
-            .filter(
-              (source) =>
-                providerFilter === "all" || source.sourceProvider === providerFilter,
+
+  const loadChunk = useCallback(
+    (chunk: KinematicsChunk): Promise<void> => {
+      if (chunkCacheRef.current.has(chunk.path)) return Promise.resolve();
+      const existing = inFlightPathsRef.current.get(chunk.path);
+      if (existing) return existing;
+
+      const request = fetch(assetPath(chunk.path))
+        .then(async (response) => {
+          if (!response.ok) throw new Error(`${chunk.path}: HTTP ${response.status}`);
+          const payload = (await response.json()) as KinematicsChunkPayload;
+          if (
+            payload.objectKey !== object.key ||
+            !Array.isArray(payload.rows) ||
+            payload.rows.length !== chunk.recordCount ||
+            payload.rows.some(
+              (row) => rowDatasetId(row) !== chunkDatasetId(chunk),
             )
-            .map((source) => source.sourceName),
-        ),
-      ).sort(),
-    [kindFilter, manifest, providerFilter],
-  );
-
-  useEffect(() => {
-    if (providerFilter !== "all" && !providerOptions.includes(providerFilter)) {
-      setProviderFilter("all");
-    }
-    if (sourceFilter !== "all" && !sourceOptions.includes(sourceFilter)) {
-      setSourceFilter("all");
-    }
-    setSelection(null);
-  }, [kindFilter, providerFilter, providerOptions, sourceFilter, sourceOptions]);
-
-  const visibleChunks = useMemo(
-    () =>
-      (manifest?.chunks ?? [])
-        .filter((chunk) => kindFilter === "all" || chunk.sourceKind === kindFilter)
-        .filter(
-          (chunk) =>
-            providerFilter === "all" || chunk.sourceProvider === providerFilter,
-        )
-        .filter((chunk) => sourceFilter === "all" || chunk.sourceName === sourceFilter),
-    [kindFilter, manifest, providerFilter, sourceFilter],
-  );
-
-  const loadPaths = useCallback(
-    async (paths: string[]) => {
-      const pending = paths.filter((path) => !chunkCacheRef.current.has(path));
-      if (pending.length === 0) return;
-      pending.forEach((path) => failedPathsRef.current.delete(path));
-      setLoadingChunks(true);
-      setChunkError(null);
-      let nextIndex = 0;
-      const errors: string[] = [];
-      try {
-        const workers = new Array(Math.min(4, pending.length)).fill(0).map(async () => {
-          while (nextIndex < pending.length) {
-            const index = nextIndex;
-            nextIndex += 1;
-            const path = pending[index];
-            try {
-              const response = await fetch(assetPath(path));
-              if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
-              const payload = (await response.json()) as KinematicsChunkPayload;
-              if (payload.objectKey !== object.key || !Array.isArray(payload.rows)) {
-                throw new Error(`${path}: invalid generated payload`);
-              }
-              chunkCacheRef.current.set(path, payload.rows);
-            } catch (error) {
-              failedPathsRef.current.add(path);
-              errors.push(error instanceof Error ? error.message : String(error));
-            }
+          ) {
+            throw new Error(`${chunk.path}: invalid generated payload`);
           }
+          chunkCacheRef.current.set(chunk.path, payload.rows);
+        })
+        .finally(() => {
+          inFlightPathsRef.current.delete(chunk.path);
         });
-        await Promise.all(workers);
-        if (errors.length > 0) {
-          throw new Error(errors.slice(0, 3).join("; "));
-        }
-      } catch (error) {
-        setChunkError(error instanceof Error ? error.message : String(error));
-      } finally {
-        setCacheVersion((value) => value + 1);
-        setLoadingChunks(false);
-      }
+      inFlightPathsRef.current.set(chunk.path, request);
+      return request;
     },
     [object.key],
   );
 
-  useEffect(() => {
-    const hasVisibleLoaded = visibleChunks.some((chunk) =>
-      chunkCacheRef.current.has(chunk.path),
-    );
-    if (hasVisibleLoaded || loadingChunks) return;
+  const loadDatasets = useCallback(
+    async (datasetIds: string[]) => {
+      const entries = datasetIds
+        .map((id) => datasetEntryById.get(id))
+        .filter((entry): entry is DatasetEntry => Boolean(entry));
+      if (entries.length === 0) return;
+      setLoadingDatasetIds((current) => {
+        const next = new Set(current);
+        entries.forEach((entry) => next.add(entry.id));
+        return next;
+      });
+      await Promise.all(
+        entries.map(async (entry) => {
+          setDatasetErrors((current) => {
+            const next = { ...current };
+            delete next[entry.id];
+            return next;
+          });
+          try {
+            await Promise.all(entry.chunks.map((chunk) => loadChunk(chunk)));
+          } catch (error) {
+            setDatasetErrors((current) => ({
+              ...current,
+              [entry.id]: error instanceof Error ? error.message : String(error),
+            }));
+          } finally {
+            setLoadingDatasetIds((current) => {
+              const next = new Set(current);
+              next.delete(entry.id);
+              return next;
+            });
+            setCacheVersion((value) => value + 1);
+          }
+        }),
+      );
+    },
+    [datasetEntryById, loadChunk],
+  );
 
-    const initialPaths: string[] = [];
-    const representedKinds = new Set<string>();
-    visibleChunks.forEach((chunk) => {
-      if (
-        representedKinds.has(chunk.sourceKind) ||
-        chunkCacheRef.current.has(chunk.path) ||
-        failedPathsRef.current.has(chunk.path)
-      ) {
-        return;
-      }
-      representedKinds.add(chunk.sourceKind);
-      initialPaths.push(chunk.path);
-    });
-    if (initialPaths.length > 0) {
-      // Load one chunk per record kind so the initial diagnostics can include
-      // both spectroscopy and proper motion without loading the full object.
-      void loadPaths(initialPaths);
-    }
-  }, [cacheVersion, loadPaths, loadingChunks, visibleChunks]);
+  const toggleDataset = useCallback(
+    (datasetId: string, checked: boolean) => {
+      setSelectedDatasetIds((current) => {
+        const next = new Set(current);
+        if (checked) next.add(datasetId);
+        else next.delete(datasetId);
+        return next;
+      });
+      setSelection((current) =>
+        !checked && current && rowDatasetId(current.row) === datasetId
+          ? null
+          : current,
+      );
+      if (checked) void loadDatasets([datasetId]);
+    },
+    [loadDatasets],
+  );
 
-  const loadedRows = useMemo(
+  const selectAllDatasets = useCallback(() => {
+    const ids = datasetEntries.map((entry) => entry.id);
+    setSelectedDatasetIds(new Set(ids));
+    void loadDatasets(ids);
+  }, [datasetEntries, loadDatasets]);
+
+  const clearAllDatasets = useCallback(() => {
+    setSelectedDatasetIds(new Set());
+    setSelection(null);
+  }, []);
+
+  const selectedDatasetEntries = useMemo(
+    () => datasetEntries.filter((entry) => selectedDatasetIds.has(entry.id)),
+    [datasetEntries, selectedDatasetIds],
+  );
+  const readyDatasetIds = useMemo(
     () =>
-      visibleChunks.flatMap(
-        (chunk) => chunkCacheRef.current.get(chunk.path) ?? [],
+      new Set(
+        selectedDatasetEntries
+          .filter(
+            (entry) =>
+              entry.chunks.length > 0 &&
+              entry.chunks.every((chunk) =>
+                chunkCacheRef.current.has(chunk.path),
+              ),
+          )
+          .map((entry) => entry.id),
       ),
     // cacheVersion is an explicit signal that the mutable chunk cache changed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cacheVersion, visibleChunks],
+    [cacheVersion, selectedDatasetEntries],
   );
-  const selectedTotalRecords = visibleChunks.reduce(
-    (total, chunk) => total + chunk.recordCount,
+  const readyDatasetEntries = useMemo(
+    () =>
+      selectedDatasetEntries.filter((entry) => readyDatasetIds.has(entry.id)),
+    [readyDatasetIds, selectedDatasetEntries],
+  );
+  const loadedRows = useMemo(
+    () =>
+      readyDatasetEntries.flatMap((entry) =>
+        entry.chunks.flatMap(
+          (chunk) => chunkCacheRef.current.get(chunk.path) ?? [],
+        ),
+      ),
+    // cacheVersion is an explicit signal that the mutable chunk cache changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cacheVersion, readyDatasetEntries],
+  );
+  const selectedTotalRecords = selectedDatasetEntries.reduce(
+    (total, entry) => total + entry.source.recordCount,
     0,
   );
-  const unloadedChunks = visibleChunks.filter(
-    (chunk) => !chunkCacheRef.current.has(chunk.path),
-  );
+  const allSelectedReady =
+    selectedDatasetEntries.length > 0 &&
+    readyDatasetEntries.length === selectedDatasetEntries.length;
 
   const rowById = useMemo(() => {
     const map = new Map<string, PublicKinematicsRow>();
@@ -387,76 +448,50 @@ export default function ObjectKinematicsClient({
         <>
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>Record selection and provenance</CardTitle>
+              <CardTitle>Dataset selection and provenance</CardTitle>
               <CardDescription>
-                Filters select source chunks before they are downloaded. Search and sorting below apply to the currently loaded records.
+                Check complete source datasets to include them in diagnostics,
+                the record table, the sky view, and CSV downloads. Uncheck a
+                dataset to remove it; previously fetched data stays cached in
+                this browser tab for fast re-selection.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap items-center gap-2">
-                <Select value={kindFilter} onValueChange={setKindFilter}>
-                  <SelectTrigger className="h-9 w-44" aria-label="Filter record kind">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All record kinds</SelectItem>
-                    {kindOptions.map((value) => (
-                      <SelectItem key={value} value={value}>{value}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={providerFilter} onValueChange={setProviderFilter}>
-                  <SelectTrigger className="h-9 w-44" aria-label="Filter provider">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All providers</SelectItem>
-                    {providerOptions.map((value) => (
-                      <SelectItem key={value} value={value}>{value}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                  <SelectTrigger className="h-9 w-64" aria-label="Filter source">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All sources</SelectItem>
-                    {sourceOptions.map((value) => (
-                      <SelectItem key={value} value={value}>{value}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={loadingChunks || unloadedChunks.length === 0}
-                  onClick={() => void loadPaths(unloadedChunks.slice(0, 1).map((chunk) => chunk.path))}
+                  disabled={
+                    datasetEntries.length === 0 ||
+                    selectedDatasetIds.size === datasetEntries.length
+                  }
+                  onClick={selectAllDatasets}
                 >
-                  Load next chunk
+                  Select all
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={loadingChunks || unloadedChunks.length === 0}
-                  onClick={() => void loadPaths(unloadedChunks.map((chunk) => chunk.path))}
+                  disabled={selectedDatasetIds.size === 0}
+                  onClick={clearAllDatasets}
                 >
-                  Load all selected
+                  Clear all
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={loadedRows.length === 0}
+                  disabled={!allSelectedReady}
                   onClick={() => downloadCsv(manifest.columns, loadedRows, object.key)}
                 >
-                  Download loaded CSV
+                  Download selected CSV
                 </Button>
                 <span className="text-sm text-muted-foreground" aria-live="polite">
-                  {loadingChunks ? "Loading… " : ""}
-                  {loadedRows.length.toLocaleString()} / {selectedTotalRecords.toLocaleString()} selected records loaded
+                  {readyDatasetEntries.length.toLocaleString()} /{" "}
+                  {selectedDatasetEntries.length.toLocaleString()} selected
+                  datasets ready · {loadedRows.length.toLocaleString()} /{" "}
+                  {selectedTotalRecords.toLocaleString()} records
                 </span>
               </div>
-              {chunkError ? <p className="mt-2 text-sm text-red-700">{chunkError}</p> : null}
 
               <div className="mt-4 break-all rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
                 <p>{manifest.semantics.recordUnit}</p>
@@ -476,7 +511,25 @@ export default function ObjectKinematicsClient({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Source</TableHead>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={
+                            selectedDatasetIds.size === datasetEntries.length
+                              ? true
+                              : selectedDatasetIds.size > 0
+                                ? "indeterminate"
+                                : false
+                          }
+                          onCheckedChange={(checked) =>
+                            checked === true
+                              ? selectAllDatasets()
+                              : clearAllDatasets()
+                          }
+                          aria-label="Select or clear all datasets"
+                        />
+                      </TableHead>
+                      <TableHead>Dataset</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Kind</TableHead>
                       <TableHead>Provider</TableHead>
                       <TableHead>Records</TableHead>
@@ -486,14 +539,64 @@ export default function ObjectKinematicsClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {manifest.sources.map((source) => {
+                    {datasetEntries.map((entry) => {
+                      const { source } = entry;
                       const bibcode = bibcodeFromReference(source.sourceRef);
+                      const selected = selectedDatasetIds.has(entry.id);
+                      const loading = loadingDatasetIds.has(entry.id);
+                      const ready = readyDatasetIds.has(entry.id);
+                      const error = datasetErrors[entry.id];
                       return (
-                        <TableRow key={`${source.sourceKind}:${source.sourceProvider}:${source.sourceName}`}>
+                        <TableRow
+                          key={entry.id}
+                          data-state={selected ? "selected" : undefined}
+                        >
                           <TableCell>
-                            {source.sourceUrl ? (
-                              <a href={source.sourceUrl} target="_blank" rel="noreferrer">{source.sourceName}</a>
-                            ) : source.sourceName}
+                            <Checkbox
+                              checked={selected}
+                              onCheckedChange={(checked) =>
+                                toggleDataset(entry.id, checked === true)
+                              }
+                              aria-label={`${selected ? "Remove" : "Add"} ${entry.style.label}`}
+                            />
+                          </TableCell>
+                          <TableCell className="min-w-56">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                style={{ backgroundColor: entry.style.color }}
+                                aria-hidden="true"
+                              />
+                              {source.sourceUrl ? (
+                                <a href={source.sourceUrl} target="_blank" rel="noreferrer">
+                                  {source.sourceName}
+                                </a>
+                              ) : source.sourceName}
+                            </div>
+                          </TableCell>
+                          <TableCell className="min-w-32 text-xs">
+                            {loading ? (
+                              <span className="text-muted-foreground">Loading…</span>
+                            ) : error && selected ? (
+                              <div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => void loadDatasets([entry.id])}
+                                >
+                                  Retry
+                                </Button>
+                                <div className="mt-1 max-w-72 break-words text-red-700">
+                                  {error}
+                                </div>
+                              </div>
+                            ) : ready ? (
+                              <span>Ready</span>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                Not selected
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell>{source.sourceKind}</TableCell>
                           <TableCell>{source.sourceProvider}</TableCell>
@@ -547,10 +650,23 @@ export default function ObjectKinematicsClient({
             </CardContent>
           </Card>
 
+          {loadedRows.length === 0 ? (
+            <Card className="mt-4">
+              <CardContent className="p-6 text-sm text-muted-foreground">
+                {selectedDatasetEntries.length === 0
+                  ? "Select one or more datasets above to load records for diagnostics, browsing, and download."
+                  : loadingDatasetIds.size > 0
+                    ? "Loading the selected datasets…"
+                    : "No selected dataset is ready. Retry any failed dataset above or choose another dataset."}
+              </CardContent>
+            </Card>
+          ) : null}
+
           {loadedRows.length > 0 ? (
             <>
             <KinematicsPlots
               rows={loadedRows}
+              datasets={readyDatasetEntries.map((entry) => entry.style)}
               selectedId={selection?.id ?? null}
               onToggleSelect={toggleSelectionByRow}
             />
@@ -565,11 +681,11 @@ export default function ObjectKinematicsClient({
               </div>
               <Card className="min-w-0">
                 <CardHeader>
-                  <CardTitle>Loaded-record sky view</CardTitle>
+                  <CardTitle>Selected-dataset sky view</CardTitle>
                   <CardDescription>
                     {selectedCoordinates
                       ? `${selection?.row.star_id || "selected"} @ RA=${selectedCoordinates.ra}, Dec=${selectedCoordinates.dec}`
-                      : `${plottedSources.length.toLocaleString()} plotted of ${loadedRows.length.toLocaleString()} loaded records`}
+                      : `${plottedSources.length.toLocaleString()} plotted of ${loadedRows.length.toLocaleString()} selected-dataset records`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

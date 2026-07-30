@@ -28,8 +28,9 @@ We are building a researcher-friendly web application under `web/` (Next.js) and
 - Linked table and Aladin Lite sky selection.
 - Build-time VizieR/SIMBAD caches.
 - Source-normalized member-kinematics records with per-object provenance,
-  chunked loading, a line-of-sight velocity histogram, selectable-axis
-  diagnostics, membership-value origins, and CSV export.
+  reversible per-dataset selection, color-coded proper-motion, sky-position,
+  line-of-sight velocity, and selectable-axis diagnostics, membership-value
+  origins, and selected-dataset CSV export.
 
 ### Local dev
 
@@ -52,8 +53,9 @@ Run from `web/`:
     npm run refresh:simbad:force
 
 The generated route summaries remain small. Dataset tables and member
-kinematics are stored as lazy-loaded public JSON; kinematics chunks contain at
-most 1,000 normalized records and exclude raw provider payloads.
+kinematics are stored as lazy-loaded public JSON. Kinematics are selected and
+downloaded as complete source datasets in the UI; the underlying transfer files
+contain at most 1,000 normalized records and exclude raw provider payloads.
 
 The manual `.github/workflows/update-vizier-cache.yml` workflow provides the
 same explicit refresh controls.
