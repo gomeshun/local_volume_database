@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { makeKinematicsRowId, kinematicsRecordLabel } from "@/lib/kinematicsSelection";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,7 @@ import {
 } from "@/lib/kinematicsDatasets";
 import type { PublicKinematicsRow } from "@/types/kinematics";
 import { formatTick } from "@/lib/plotTicks";
+import { activePlotPointIndex, nextPlotPointIndex } from "@/lib/plotNavigation";
 
 type PlotPoint = {
   id: string;
@@ -228,20 +229,15 @@ function ScatterPlot({
   onToggleSelect: (row: PublicKinematicsRow, rowId: string) => void;
   reverseX?: boolean;
 }) {
-  if (points.length === 0) {
-    return (
-      <div>
-        <div className="mb-1 text-sm font-medium">{title}</div>
-        <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-          No filtered records contain both quantities.
-        </div>
-      </div>
-    );
-  }
-
-  const sampled = samplePoints(points, selectedId);
-  const xDomain = extent(points.map((point) => point.x));
-  const yDomain = extent(points.map((point) => point.y));
+  const plotId = useId();
+  const plotRef = useRef<HTMLDivElement>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const sampled = useMemo(() => samplePoints(points, selectedId), [points, selectedId]);
+  const activeIndex = activePlotPointIndex(sampled.map((point) => point.id), activeId, selectedId);
+  const activePoint = sampled[activeIndex];
+  const optionId = (index: number) => `${plotId}-point-${index}`;
+  const xDomain: [number, number] = points.length ? extent(points.map((point) => point.x)) : [0, 1];
+  const yDomain: [number, number] = points.length ? extent(points.map((point) => point.y)) : [0, 1];
   const plotWidth = WIDTH - MARGIN.left - MARGIN.right;
   const plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
   const xTickResolution = (xDomain[1] - xDomain[0]) / 4;
@@ -261,119 +257,167 @@ function ScatterPlot({
           n = {points.length.toLocaleString()}
         </span>
       </div>
-      <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        className="h-auto w-full rounded-md border bg-background"
-        role="img"
+      <div
+        ref={plotRef}
+        role="listbox"
+        tabIndex={sampled.length > 0 ? 0 : -1}
         aria-label={`${title}, ${points.length} filtered records`}
+        aria-describedby={`${plotId}-instructions${sampled.length < points.length ? ` ${plotId}-sample` : ""}`}
+        aria-activedescendant={activePoint ? optionId(activeIndex) : undefined}
+        className="group rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        onFocus={() => {
+          // A selected point (including one added to the sample) is the entry point.
+          if (selectedId && sampled.some((point) => point.id === selectedId)) setActiveId(selectedId);
+        }}
+        onKeyDown={(event) => {
+          if (event.altKey || event.ctrlKey || event.metaKey || !activePoint) return;
+          const nextIndex = nextPlotPointIndex(event.key, activeIndex, sampled.length);
+          if (nextIndex !== null) {
+            event.preventDefault();
+            setActiveId(sampled[nextIndex].id);
+          } else if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            if (!event.repeat) {
+              setActiveId(activePoint.id);
+              onToggleSelect(activePoint.row, activePoint.id);
+            }
+          }
+        }}
       >
-        <title>{title}</title>
-        <desc>
-          Scatter plot of {yLabel} against {xLabel} for {points.length} filtered records.
-        </desc>
-        <line
-          x1={MARGIN.left}
-          x2={MARGIN.left}
-          y1={MARGIN.top}
-          y2={MARGIN.top + plotHeight}
-          className="stroke-border"
-        />
-        <line
-          x1={MARGIN.left}
-          x2={MARGIN.left + plotWidth}
-          y1={MARGIN.top + plotHeight}
-          y2={MARGIN.top + plotHeight}
-          className="stroke-border"
-        />
-        {ticks(xDomain).map((tick) => (
-          <g key={`x-${tick}`}>
-            <line
-              x1={xPosition(tick)}
-              x2={xPosition(tick)}
-              y1={MARGIN.top + plotHeight}
-              y2={MARGIN.top + plotHeight + 5}
-              className="stroke-muted-foreground"
-            />
+        {points.length === 0 ? (
+          <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+            No filtered records contain both quantities.
+          </div>
+        ) : (
+          <svg
+            viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+            className="h-auto w-full rounded-md border bg-background"
+            role="presentation"
+          >
+            <g aria-hidden="true">
+              <line
+                x1={MARGIN.left}
+                x2={MARGIN.left}
+                y1={MARGIN.top}
+                y2={MARGIN.top + plotHeight}
+                className="stroke-border"
+              />
+              <line
+                x1={MARGIN.left}
+                x2={MARGIN.left + plotWidth}
+                y1={MARGIN.top + plotHeight}
+                y2={MARGIN.top + plotHeight}
+                className="stroke-border"
+              />
+              {ticks(xDomain).map((tick) => (
+                <g key={`x-${tick}`}>
+                  <line
+                    x1={xPosition(tick)}
+                    x2={xPosition(tick)}
+                    y1={MARGIN.top + plotHeight}
+                    y2={MARGIN.top + plotHeight + 5}
+                    className="stroke-muted-foreground"
+                  />
+                  <text
+                    x={xPosition(tick)}
+                    y={MARGIN.top + plotHeight + 18}
+                    textAnchor="middle"
+                    className="fill-muted-foreground text-[10px]"
+                  >
+                    {formatTick(tick, xTickResolution)}
+                  </text>
+                </g>
+              ))}
+              {ticks(yDomain).map((tick) => (
+                <g key={`y-${tick}`}>
+                  <line
+                    x1={MARGIN.left - 5}
+                    x2={MARGIN.left}
+                    y1={yPosition(tick)}
+                    y2={yPosition(tick)}
+                    className="stroke-muted-foreground"
+                  />
+                  <text
+                    x={MARGIN.left - 8}
+                    y={yPosition(tick) + 3}
+                    textAnchor="end"
+                    className="fill-muted-foreground text-[10px]"
+                  >
+                    {formatTick(tick, yTickResolution)}
+                  </text>
+                </g>
+              ))}
+            </g>
+            {sampled.map((point, index) => {
+              const selected = point.id === selectedId;
+              return (
+                <circle
+                  key={`${point.id}:${index}`}
+                  id={optionId(index)}
+                  cx={xPosition(point.x)}
+                  cy={yPosition(point.y)}
+                  r={selected ? 5 : 2.5}
+                  className="cursor-pointer stroke-background hover:stroke-foreground"
+                  style={{
+                    fill: selected ? "#f97316" : point.color,
+                    fillOpacity: selected ? 1 : 0.68,
+                    strokeWidth: selected ? 2 : 0.45,
+                  }}
+                  role="option"
+                  aria-selected={selected}
+                  aria-posinset={index + 1}
+                  aria-setsize={sampled.length}
+                  aria-label={`${kinematicsRecordLabel(point.row)}: ${xLabel} ${point.x}, ${yLabel} ${point.y}`}
+                  onClick={() => {
+                    plotRef.current?.focus({ preventScroll: true });
+                    setActiveId(point.id);
+                    onToggleSelect(point.row, point.id);
+                  }}
+                >
+                  <title>
+                    {kinematicsRecordLabel(point.row)}: {xLabel} {point.x}, {yLabel} {point.y}
+                  </title>
+                </circle>
+              );
+            })}
+            {activePoint ? (
+              <g
+                aria-hidden="true"
+                className="pointer-events-none opacity-0 group-focus-visible:opacity-100"
+              >
+                <circle cx={xPosition(activePoint.x)} cy={yPosition(activePoint.y)} r={8} fill="none" className="stroke-background" strokeWidth={4} />
+                <circle cx={xPosition(activePoint.x)} cy={yPosition(activePoint.y)} r={8} fill="none" className="stroke-foreground" strokeWidth={2} />
+              </g>
+            ) : null}
             <text
-              x={xPosition(tick)}
-              y={MARGIN.top + plotHeight + 18}
+              aria-hidden="true"
+              x={MARGIN.left + plotWidth / 2}
+              y={HEIGHT - 8}
               textAnchor="middle"
-              className="fill-muted-foreground text-[10px]"
+              className="fill-muted-foreground text-[11px]"
             >
-              {formatTick(tick, xTickResolution)}
+              {xLabel}
             </text>
-          </g>
-        ))}
-        {ticks(yDomain).map((tick) => (
-          <g key={`y-${tick}`}>
-            <line
-              x1={MARGIN.left - 5}
-              x2={MARGIN.left}
-              y1={yPosition(tick)}
-              y2={yPosition(tick)}
-              className="stroke-muted-foreground"
-            />
             <text
-              x={MARGIN.left - 8}
-              y={yPosition(tick) + 3}
-              textAnchor="end"
-              className="fill-muted-foreground text-[10px]"
+              aria-hidden="true"
+              x={14}
+              y={MARGIN.top + plotHeight / 2}
+              textAnchor="middle"
+              transform={`rotate(-90 14 ${MARGIN.top + plotHeight / 2})`}
+              className="fill-muted-foreground text-[11px]"
             >
-              {formatTick(tick, yTickResolution)}
+              {yLabel}
             </text>
-          </g>
-        ))}
-        {sampled.map((point, index) => {
-          const selected = point.id === selectedId;
-          return (
-            <circle
-              key={`${point.id}:${index}`}
-              cx={xPosition(point.x)}
-              cy={yPosition(point.y)}
-              r={selected ? 5 : 2.5}
-              className="cursor-pointer stroke-background hover:stroke-foreground"
-              style={{
-                fill: selected ? "#f97316" : point.color,
-                fillOpacity: selected ? 1 : 0.68,
-                strokeWidth: selected ? 2 : 0.45,
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label={`${kinematicsRecordLabel(point.row)}: ${xLabel} ${point.x}, ${yLabel} ${point.y}`}
-              onClick={() => onToggleSelect(point.row, point.id)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onToggleSelect(point.row, point.id);
-                }
-              }}
-            >
-              <title>
-                {kinematicsRecordLabel(point.row)}: {xLabel} {point.x}, {yLabel} {point.y}
-              </title>
-            </circle>
-          );
-        })}
-        <text
-          x={MARGIN.left + plotWidth / 2}
-          y={HEIGHT - 8}
-          textAnchor="middle"
-          className="fill-muted-foreground text-[11px]"
-        >
-          {xLabel}
-        </text>
-        <text
-          x={14}
-          y={MARGIN.top + plotHeight / 2}
-          textAnchor="middle"
-          transform={`rotate(-90 14 ${MARGIN.top + plotHeight / 2})`}
-          className="fill-muted-foreground text-[11px]"
-        >
-          {yLabel}
-        </text>
-      </svg>
+          </svg>
+        )}
+      </div>
+      <p id={`${plotId}-instructions`} className="mt-1 text-xs text-muted-foreground">
+        {sampled.length > 0
+          ? "Arrow keys move through displayed points in sample order; Home/End jump to the first/last. Enter or Space toggles selection. Tab leaves the plot."
+          : "No points available for keyboard navigation."}
+      </p>
       {sampled.length < points.length ? (
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p id={`${plotId}-sample`} className="mt-1 text-xs text-muted-foreground">
           Deterministic preview of {sampled.length.toLocaleString()} / {points.length.toLocaleString()} points.
         </p>
       ) : null}
