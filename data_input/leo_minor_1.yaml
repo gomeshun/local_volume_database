@@ -3,6 +3,7 @@ table: dwarf_mw
 location:
   ra: 164.261
   dec: 28.875
+  ref_location: Cerny2023ApJ...953....1C
 name_discovery:
   confirmed_dwarf: 0
   confirmed_real: 1
@@ -14,7 +15,7 @@ name_discovery:
   ref_discovery:
   - Cerny2023ApJ...953....1C
   abbreviation: LMiI
-  # type: dSph/SC
+  type: dSph
 distance:
   distance_modulus: 19.56
   distance_modulus_em: 0.19

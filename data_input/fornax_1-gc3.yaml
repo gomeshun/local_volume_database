@@ -9,12 +9,15 @@ name_discovery:
   confirmed_real: 1
   discovery_year: 1938
   host: fornax_1
-  name: Fornax-GC3
+  name: Fornax 3
   other_name:
   - NGC 1049
   - Hodge 3
+  - Fornax-GC3
+  - ESO 356-3
   ref_discovery:
   - Shapley1938BHarO.908....1S
+  type: GC
 notes:
 - distance is from RRL \citep{Mackey2003MNRAS.345..747M} and metallicity corrected by \citep{deBoer2016A&A...590A..35D}
 structure:

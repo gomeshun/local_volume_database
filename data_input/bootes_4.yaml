@@ -3,6 +3,7 @@ table: dwarf_mw
 location:
   ra: 233.689
   dec: 43.726
+  ref_location: Homma2019PASJ...71...94H
 name_discovery:
   confirmed_dwarf: 0
   confirmed_real: 1
@@ -14,7 +15,7 @@ name_discovery:
   ref_discovery:
   - Homma2019PASJ...71...94H
   abbreviation: BooIV
-  # type: dSph/SC
+  type: dSph
 distance:
   distance_modulus: 21.6
   distance_modulus_em: 0.2

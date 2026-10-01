@@ -3,6 +3,7 @@ table: dwarf_local_field
 location:
   ra: 188.7570833
   dec: 58.3866111
+  ref_location: Xu2025ApJ...982L..36X
 name_discovery:
   confirmed_dwarf: 1
   confirmed_real: 1
@@ -16,6 +17,7 @@ name_discovery:
   - Karachentseva1968CoBAO..39...61K
   - Karachentseva1998A&AS..127..409K
   - Xu2025ApJ...982L..36X
+  type: dIrr
 structure:
   rhalf: 17.4
   rhalf_em: 0.8
