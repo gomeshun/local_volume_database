@@ -119,5 +119,12 @@
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
     "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
+  },
+  "identitySupplement": {
+    "path": "/data/kinematics/willman_1/geha-record-identities.json",
+    "sha256": "33d83aaecd1fea5490cc8b9d469d8831b38f902336523015583740bf6ae1519e",
+    "sourceFileSha256": "3b731eb3b055cf14feeccf54cea862102b6be1c75a38b66ba1cbbe38664e82f4",
+    "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
+    "basePublicDataSha256": "0cd20248789c39e6fdf7dd06f6956d26cbec66bb0d8883911f46e4794e005d9b"
   }
 }

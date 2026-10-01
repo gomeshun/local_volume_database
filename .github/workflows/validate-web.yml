@@ -21,6 +21,12 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - name: Test source-record identity normalization
+        env:
+          MPLCONFIGDIR: /tmp/lvdb-matplotlib
+        run: |
+          python -m pip install uv
+          uv run python scripts/test_kinematics_fetcher.py
       - name: Install dependencies
         working-directory: web
         run: npm ci

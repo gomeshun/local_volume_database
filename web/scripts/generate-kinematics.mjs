@@ -25,6 +25,9 @@ const PUBLIC_KINEMATICS_COLUMNS = [
   "source_url",
   "source_row",
   "star_id",
+  "source_target_label",
+  "gaia_source_id",
+  "record_id",
   "ra_deg",
   "dec_deg",
   "vlos_kms",
@@ -287,7 +290,7 @@ async function writeObjectData(object, rows, inputSha256, sourceSnapshotModified
       recordUnit:
         "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
       membership:
-        "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification.",
+        "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and reliable star identity agree; reused design-target labels alone are never sufficient, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification.",
     },
   };
   const manifestText = `${JSON.stringify(manifest, null, 2)}\n`;
@@ -333,6 +336,10 @@ async function main() {
     fs.stat(inputCsv),
     fs.readFile(COLUMN_DICTIONARY_SOURCE, "utf8"),
   ]);
+  const requiredIdentityColumns = ["source_target_label", "gaia_source_id", "record_id"];
+  if (requiredIdentityColumns.some((column) => !kinematics.columns.includes(column)) || kinematics.rows.some((row) => !row.record_id)) {
+    throw new Error("Normalized kinematics CSV uses an old or incomplete identity schema. Re-normalize from verified cached source tables before generation. Existing public assets have been left untouched.");
+  }
   const columnDictionary = JSON.parse(columnDictionaryText);
   validateColumnDictionary(columnDictionary);
   const inputSha256 = sha256(kinematics.text);

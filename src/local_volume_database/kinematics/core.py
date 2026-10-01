@@ -33,6 +33,9 @@ STANDARD_COLUMNS = [
     "source_url",
     "source_row",
     "star_id",
+    "source_target_label",
+    "gaia_source_id",
+    "record_id",
     "ra_deg",
     "dec_deg",
     "vlos_kms",
@@ -810,6 +813,7 @@ def gaia_source_ids_from_normalized_row(row: Mapping[str, str]) -> list[str]:
         Gaia-like numeric source identifiers in stable discovery order.
     """
     candidates: list[str] = []
+    candidates.extend(gaia_source_ids_from_value(row.get("gaia_source_id", "")))
     candidates.extend(gaia_source_ids_from_value(row.get("star_id", "")))
 
     original_row_json = str(row.get("original_row_json", "")).strip()
@@ -965,6 +969,8 @@ def normalize_gaia_dr3_rows(
                 "source_url": "https://gea.esac.esa.int/archive/",
                 "source_row": index,
                 "star_id": target.source_id,
+                "source_target_label": None,
+                "gaia_source_id": target.source_id,
                 "ra_deg": float_from_mapping(gaia_row, "ra"),
                 "dec_deg": float_from_mapping(gaia_row, "dec"),
                 "vlos_kms": None,
@@ -986,6 +992,8 @@ def normalize_gaia_dr3_rows(
                 "original_row_json": json.dumps(original_payload, sort_keys=True, ensure_ascii=True),
             }
         )
+    for row in normalized_rows:
+        row["record_id"] = make_record_id(row)
     return normalized_rows
 
 
@@ -1208,6 +1216,8 @@ def normalize_table(
                 "source_url": source.url,
                 "source_row": index,
                 "star_id": get_string(row, source.columns.get("star_id"), missing_values=source.missing_values),
+                "source_target_label": get_string(row, source.columns.get("source_target_label"), missing_values=source.missing_values),
+                "gaia_source_id": get_string(row, source.columns.get("gaia_source_id"), missing_values=source.missing_values),
                 "ra_deg": get_angle_deg(
                     row,
                     source.columns.get("ra_deg"),
@@ -1251,7 +1261,56 @@ def normalize_table(
                 "original_row_json": json.dumps(row_to_jsonable_dict(row), sort_keys=True, ensure_ascii=True),
             }
         )
+    for record in normalized:
+        record["record_id"] = make_record_id(record)
     return propagate_consistent_star_membership(normalized)
+
+
+def make_record_id(row: Mapping[str, Any]) -> str:
+    """Build an observation identity without treating labels as unique stars.
+
+    Parameters
+    ----------
+    row : Mapping
+        Normalized record with source provenance and a zero-based source row.
+
+    Returns
+    -------
+    str
+        JSON-encoded, source-scoped record locator. It does not imply a match
+        between physical stars in different source datasets.
+    """
+    fields = ("object_key", "source_provider", "source_name", "source_table", "source_row")
+    return "record:" + json.dumps([str(row.get(field, "")) for field in fields], separators=(",", ":"), ensure_ascii=False)
+
+
+def membership_identity(row: Mapping[str, Any]) -> tuple[str, ...] | None:
+    """Choose a conservative source-scoped key for membership propagation.
+
+    Parameters
+    ----------
+    row : Mapping
+        Normalized source record, optionally with an exact Gaia identifier.
+
+    Returns
+    -------
+    tuple of str or None
+        Source-local Gaia identity, a legacy source star identity, or None when
+        only a potentially reused design-target label is available.
+    """
+    scope = tuple(str(row.get(field) or "").strip() for field in
+                  ("source_provider", "source_name", "source_table", "object_key"))
+    if not scope[-1]:
+        return None
+    gaia_id = str(row.get("gaia_source_id") or "").strip()
+    if gaia_id:
+        return scope + ("gaia", gaia_id)
+    # Geha Object is a DEIMOS design-target label, including repeated SERENDIP.
+    # Missing Gaia must not turn the label into evidence for a same-star match.
+    if row.get("source_target_label") or row.get("source_name") == "geha2026_deimos_expanded_aas_iop":
+        return None
+    star_id = str(row.get("star_id") or "").strip()
+    return scope + ("legacy", star_id) if star_id else None
 
 
 def propagate_consistent_star_membership(
@@ -1262,8 +1321,8 @@ def propagate_consistent_star_membership(
     Published velocity tables sometimes place a star-level membership value on
     only one of several repeated-observation rows. This function preserves that
     distinction through an origin column and fills a missing value only when
-    every reported value for the same source, LVDB object, and star identifier
-    agrees.
+    every reported value for the same source, LVDB object, and reliable source
+    identity agrees. A design-target label alone is not a star identity.
 
     Parameters
     ----------
@@ -1277,16 +1336,14 @@ def propagate_consistent_star_membership(
         ``"same_star"`` where applicable.
     """
     fields = ("membership_probability", "membership_flag")
-    values_by_star: dict[tuple[str, str], dict[str, set[Any]]] = {}
+    values_by_star: dict[tuple[str, ...], dict[str, set[Any]]] = {}
 
     for row in rows:
-        object_key = str(row.get("object_key") or "").strip()
-        star_id = str(row.get("star_id") or "").strip()
-        if not object_key or not star_id:
+        identity = membership_identity(row)
+        if identity is None:
             continue
         grouped_values = values_by_star.setdefault(
-            (object_key, star_id),
-            {field: set() for field in fields},
+            identity, {field: set() for field in fields},
         )
         for field in fields:
             value = row.get(field)
@@ -1295,9 +1352,8 @@ def propagate_consistent_star_membership(
 
     output = list(rows)
     for row in output:
-        object_key = str(row.get("object_key") or "").strip()
-        star_id = str(row.get("star_id") or "").strip()
-        grouped_values = values_by_star.get((object_key, star_id), {})
+        identity = membership_identity(row)
+        grouped_values = values_by_star.get(identity, {}) if identity else {}
         for field in fields:
             origin_field = f"{field}_origin"
             value = row.get(field)

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { makeKinematicsRowId } from "@/components/MemberKinematicsTable";
+import { makeKinematicsRowId, kinematicsRecordLabel } from "@/lib/kinematicsSelection";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -339,7 +339,7 @@ function ScatterPlot({
               }}
               role="button"
               tabIndex={0}
-              aria-label={`${point.row.star_id || "record"}: ${xLabel} ${point.x}, ${yLabel} ${point.y}`}
+              aria-label={`${kinematicsRecordLabel(point.row)}: ${xLabel} ${point.x}, ${yLabel} ${point.y}`}
               onClick={() => onToggleSelect(point.row, point.id)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
@@ -349,7 +349,7 @@ function ScatterPlot({
               }}
             >
               <title>
-                {point.row.star_id || "record"}: {xLabel} {point.x}, {yLabel} {point.y}
+                {kinematicsRecordLabel(point.row)}: {xLabel} {point.x}, {yLabel} {point.y}
               </title>
             </circle>
           );

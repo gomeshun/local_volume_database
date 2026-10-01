@@ -119,5 +119,12 @@
   "semantics": {
     "recordUnit": "A normalized source record. Records are not guaranteed to represent unique stars across providers.",
     "membership": "Membership probability and flag retain provider-specific definitions. Origin 'reported' is present on that provider row, 'same_star' is copied only when all reported values for the same source and star ID agree, and 'seed_source' is inherited by a Gaia row from its cited input record. Blank membership remains unknown and is not a non-member classification."
+  },
+  "identitySupplement": {
+    "path": "/data/kinematics/coma_berenices_1/geha-record-identities.json",
+    "sha256": "805145e9e85fab037aed562e0675347578b235f22c5eb33228bc6e1628f001b3",
+    "sourceFileSha256": "3b731eb3b055cf14feeccf54cea862102b6be1c75a38b66ba1cbbe38664e82f4",
+    "sourceUrl": "https://content.cld.iop.org/journals/0004-637X/999/1/140/revision1/apjae290dt5_mrt.txt",
+    "basePublicDataSha256": "e629243a0c1cba1b7772ad5ca8869f64019da832e7c8ee071f0e4ec3a7eba743"
   }
 }

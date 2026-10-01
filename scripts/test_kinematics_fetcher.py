@@ -320,7 +320,52 @@ def test_normalize_gaia_dr3_rows() -> None:
     assert rows[0]["membership_flag_origin"] == "seed_source"
 
 
+
+def test_geha_identity_isolation() -> None:
+    """Keep reused design labels separate while preserving reported membership.
+
+    Returns
+    -------
+    None
+        Assertions cover exact 64-bit identifiers, repeated labels, missing Gaia,
+        same-source repeats, and source-scoped propagation.
+    """
+    from local_volume_database.kinematics.core import propagate_consistent_star_membership
+
+    source = next(item for item in KINEMATIC_SOURCES if item.name == "geha2026_deimos_expanded_aas_iop")
+    table = Table(rows=[
+        ("Draco", "SERENDIP", 1432526329134459392, 1, 0.9),
+        ("Draco", "SERENDIP", 1432526329134459393, 1, -999.0),
+        ("Draco", "SERENDIP", 1432526329134459392, 1, -999.0),
+        ("Draco", "30Drac", -999, 1, 0.8),
+        ("Draco", "30Drac", -999, 1, -999.0),
+    ], names=["System", "Object", "Gaia", "marz-flag", "Pmem"], masked=True)
+    table["Pmem"].mask = [False, True, True, False, True]
+    # Use the exact source system key from the registry.
+    table["System"] = [next(key for key, value in source.object_key_map.items() if value == "draco_1")] * len(table)
+    rows = normalize_table(table, source, load_dwarf_rows(ROOT / "data/dwarf_mw.csv"))
+    assert len(rows) == 5
+    assert rows[0]["star_id"] == rows[1]["star_id"] == "SERENDIP"
+    assert rows[0]["source_target_label"] == "SERENDIP"
+    assert rows[0]["gaia_source_id"] == "1432526329134459392"
+    assert rows[1]["gaia_source_id"] == "1432526329134459393"
+    assert rows[0]["membership_probability"] == 0.9
+    assert rows[0]["membership_probability_origin"] == "reported"
+    assert rows[1]["membership_probability"] is None
+    assert rows[2]["membership_probability"] == 0.9
+    assert rows[2]["membership_probability_origin"] == "same_star"
+    assert rows[3]["membership_probability"] == 0.8
+    assert rows[3]["membership_probability_origin"] == "reported"
+    assert rows[4]["membership_probability"] is None
+    assert rows[3]["gaia_source_id"] is None
+    assert len({row["record_id"] for row in rows}) == len(rows)
+    mixed = [dict(rows[0]), {**rows[0], "source_name": "other", "membership_probability": None, "membership_flag": None}]
+    isolated = propagate_consistent_star_membership(mixed)
+    assert isolated[1]["membership_probability"] is None
+
+
 if __name__ == "__main__":
+    test_geha_identity_isolation()
     test_guess_vizier_source_id()
     test_reference_manifest_marks_registered_sources()
     test_normalize_walker_like_table()

@@ -50,7 +50,7 @@ export function filterKinematicsRows<T extends Record<string, string>>(rows: T[]
     if (membership === "source-reported" && row.membership_probability_origin !== "reported" && row.membership_flag_origin !== "reported") return false;
     if (membership === "probability-0.5" && (probability === null || probability < 0.5)) return false;
     if (membership === "probability-0.9" && (probability === null || probability < 0.9)) return false;
-    return !normalized || [row.star_id, row.source_kind, row.source_name, row.source_provider, row.source_ref, row.membership_flag].join(" ").toLowerCase().includes(normalized);
+    return !normalized || [row.star_id, row.source_target_label, row.gaia_source_id, row.record_id, row.source_row, row.source_kind, row.source_name, row.source_provider, row.source_ref, row.membership_flag].join(" ").toLowerCase().includes(normalized);
   });
 }
 
