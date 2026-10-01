@@ -6,7 +6,11 @@ import { AladinLiteViewer } from "@/components/AladinLiteViewer";
 import {
   MemberKinematicsTable,
   makeKinematicsRowId,
+  type KinematicsTableHandle,
 } from "@/components/MemberKinematicsTable";
+import { SelectedKinematicsRecord } from "@/components/SelectedKinematicsRecord";
+import { enrichKinematicsRows, GEHA_SOURCE, publicIdentityColumns, validateIdentitySupplement, type IdentitySupplement } from "@/lib/kinematicsIdentity";
+import { kinematicsRecordLabel, resolveKinematicsSelection } from "@/lib/kinematicsSelection";
 import { KinematicsPlots } from "@/components/KinematicsPlots";
 import { CopyViewLink } from "@/components/CopyViewLink";
 import { Input } from "@/components/ui/input";
@@ -128,6 +132,8 @@ export default function ObjectKinematicsClient({
 }: {
   object: KinematicObjectSummary;
 }) {
+  const identityPromiseRef = useRef<Promise<IdentitySupplement | null> | null>(null);
+  const tableRef = useRef<KinematicsTableHandle>(null);
   const [view, setView, viewReady] = useUrlView("view", DEFAULT_RESEARCH_VIEW, decodeResearchView);
   const updateView = useCallback((patch: Partial<ResearchView>) => setView((current) => ({ ...current, ...patch })), [setView]);
   const selectedDatasetIds = useMemo(() => new Set(view.datasets), [view.datasets]);
@@ -158,6 +164,7 @@ export default function ObjectKinematicsClient({
         if (payload.objectKey !== object.key) {
           throw new Error("Generated manifest does not match this object.");
         }
+        identityPromiseRef.current = null;
         chunkCacheRef.current.clear();
         inFlightPathsRef.current.clear();
         setCacheVersion(0);
@@ -206,6 +213,20 @@ export default function ObjectKinematicsClient({
     [datasetEntries],
   );
 
+  const publicColumns = useMemo(() => publicIdentityColumns(manifest?.columns ?? []), [manifest]);
+  const loadIdentitySupplement = useCallback((): Promise<IdentitySupplement | null> => {
+    if (!manifest?.identitySupplement) return Promise.resolve(null);
+    if (identityPromiseRef.current) return identityPromiseRef.current;
+    const reference = manifest.identitySupplement;
+    identityPromiseRef.current = fetch(assetPath(reference.path))
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Identity supplement: HTTP ${response.status}`);
+        const expectedRows = manifest.sources.filter((source) => source.sourceName === GEHA_SOURCE).reduce((count, source) => count + source.recordCount, 0);
+        return validateIdentitySupplement(await response.text(), reference, manifest.objectKey, manifest.publicDataSha256, manifest.sourceInputSha256, expectedRows);
+      }).catch((error) => { identityPromiseRef.current = null; throw error; });
+    return identityPromiseRef.current;
+  }, [manifest]);
+
   const loadChunk = useCallback(
     (chunk: KinematicsChunk): Promise<void> => {
       if (chunkCacheRef.current.has(chunk.path)) return Promise.resolve();
@@ -226,7 +247,8 @@ export default function ObjectKinematicsClient({
           ) {
             throw new Error(`${chunk.path}: invalid generated payload`);
           }
-          chunkCacheRef.current.set(chunk.path, payload.rows);
+          const identities = chunk.sourceName === GEHA_SOURCE ? await loadIdentitySupplement() : null;
+          chunkCacheRef.current.set(chunk.path, enrichKinematicsRows(payload.rows, identities));
         })
         .finally(() => {
           inFlightPathsRef.current.delete(chunk.path);
@@ -234,7 +256,7 @@ export default function ObjectKinematicsClient({
       inFlightPathsRef.current.set(chunk.path, request);
       return request;
     },
-    [object.key],
+    [object.key, loadIdentitySupplement],
   );
 
   const loadDatasets = useCallback(
@@ -337,7 +359,7 @@ export default function ObjectKinematicsClient({
     filteredRows.forEach((row, index) => map.set(makeKinematicsRowId(row, index), row));
     return map;
   }, [filteredRows]);
-  const selectedRow = view.selectedId ? rowById.get(view.selectedId) : undefined;
+  const { row: selectedRow, visible: selectionVisible } = useMemo(() => resolveKinematicsSelection(loadedRows, filteredRows, view.selectedId), [loadedRows, filteredRows, view.selectedId]);
   const selection = useMemo(() => selectedRow && view.selectedId ? { id: view.selectedId, row: selectedRow } : null, [selectedRow, view.selectedId]);
   const coordinateCount = filteredRows.filter((row) => finiteNumber(row.ra_deg) !== null && finiteNumber(row.dec_deg) !== null).length;
 
@@ -351,7 +373,7 @@ export default function ObjectKinematicsClient({
           id: makeKinematicsRowId(row, index),
           ra,
           dec,
-          title: row.star_id || row.source_name || object.name,
+          title: kinematicsRecordLabel(row),
         };
       })
       .filter(
@@ -361,7 +383,7 @@ export default function ObjectKinematicsClient({
     if (rowsWithCoordinates.length <= MAX_ALADIN_SOURCES) return rowsWithCoordinates;
     const stride = Math.ceil(rowsWithCoordinates.length / MAX_ALADIN_SOURCES);
     return rowsWithCoordinates.filter((_, index) => index % stride === 0);
-  }, [filteredRows, object.name]);
+  }, [filteredRows]);
 
   const initialTarget = useMemo(() => {
     const ra = finiteNumber(object.ra);
@@ -505,7 +527,7 @@ export default function ObjectKinematicsClient({
                   variant="outline"
                   size="sm"
                   disabled={!allSelectedReady}
-                  onClick={() => downloadCsv(manifest.columns, loadedRows, object.key, "selected_datasets")}
+                  onClick={() => downloadCsv(publicColumns, loadedRows, object.key, "selected_datasets")}
                 >
                   Download full selected datasets ({loadedRows.length.toLocaleString()})
                 </Button>
@@ -513,7 +535,7 @@ export default function ObjectKinematicsClient({
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    downloadColumnGuideCsv(manifest.columns, object.key)
+                    downloadColumnGuideCsv(publicColumns, object.key)
                   }
                 >
                   Download column guide
@@ -530,8 +552,9 @@ export default function ObjectKinematicsClient({
                 <p>{manifest.semantics.recordUnit}</p>
                 <p className="mt-1">{manifest.semantics.membership}</p>
                 <p className="mt-2 font-mono">
-                  public data SHA-256: {manifest.publicDataSha256}
+                  base public data SHA-256: {manifest.publicDataSha256}
                 </p>
+                {manifest.identitySupplement ? <p className="font-mono">Identity supplement SHA-256: {manifest.identitySupplement.sha256} · source MRT SHA-256: {manifest.identitySupplement.sourceFileSha256}</p> : null}
                 <p className="font-mono">
                   normalized input SHA-256: {manifest.sourceInputSha256}
                 </p>
@@ -684,7 +707,7 @@ export default function ObjectKinematicsClient({
               <details className="mt-4 rounded-lg border">
                 <summary className="cursor-pointer px-4 py-3 text-sm font-medium">
                   Column guide for the record table and downloaded CSV (
-                  {manifest.columns.length})
+                  {publicColumns.length})
                 </summary>
                 <div className="border-t p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -725,7 +748,7 @@ export default function ObjectKinematicsClient({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {manifest.columns.map((column) => {
+                        {publicColumns.map((column) => {
                           const definition =
                             getKinematicsColumnDefinition(column);
                           return (
@@ -768,8 +791,8 @@ export default function ObjectKinematicsClient({
             <CardHeader><CardTitle>Shared research sample</CardTitle><CardDescription>Search and membership filters apply to the table, plots, sky view and filtered CSV. Downloads always retain every public column and its provenance; unreported membership stays missing.</CardDescription></CardHeader>
             <CardContent>
               <div className="flex flex-wrap items-center gap-3">
-                <Input className="w-full sm:max-w-md" value={view.query} onChange={(event) => updateView({ query: event.target.value, selectedId: null })} placeholder="Search records or sources…" aria-label="Search selected kinematic records" />
-                <Select value={view.membership} onValueChange={(membership) => updateView({ membership, selectedId: null })}>
+                <Input className="w-full sm:max-w-md" value={view.query} onChange={(event) => updateView({ query: event.target.value })} placeholder="Search records or sources…" aria-label="Search selected kinematic records" />
+                <Select value={view.membership} onValueChange={(membership) => updateView({ membership })}>
                   <SelectTrigger className="w-full sm:w-[220px]" aria-label="Filter reported membership"><SelectValue /></SelectTrigger>
                   <SelectContent><SelectItem value="all">All membership</SelectItem><SelectItem value="available">Any membership value</SelectItem><SelectItem value="source-reported">Reported on source row</SelectItem><SelectItem value="probability-0.5">P ≥ 0.5</SelectItem><SelectItem value="probability-0.9">P ≥ 0.9</SelectItem></SelectContent>
                 </Select>
@@ -777,13 +800,15 @@ export default function ObjectKinematicsClient({
               </div>
               <p className="my-3 text-sm font-medium" role="status">Shared sample: {filteredRows.length.toLocaleString()} filtered / {loadedRows.length.toLocaleString()} loaded / {selectedTotalRecords.toLocaleString()} selected records{!allSelectedReady && selectedDatasetEntries.length > 0 ? " · partial sample: waiting for all selected datasets" : ""}</p>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" disabled={!allSelectedReady} onClick={() => downloadCsv(manifest.columns, filteredRows, object.key, "filtered")}>Download filtered CSV ({filteredRows.length.toLocaleString()})</Button>
-                <Button variant="outline" size="sm" disabled={!allSelectedReady} onClick={() => downloadFile(JSON.stringify({ schemaVersion: 1, objectKey: object.key, sourceSnapshotModifiedAt: manifest.sourceSnapshotModifiedAt, publicDataSha256: manifest.publicDataSha256, sourceInputSha256: manifest.sourceInputSha256, selectedSources: selectedDatasetEntries.map((entry) => ({ id: entry.id, ...entry.source, chunks: entry.chunks })), counts: { selected: selectedTotalRecords, loaded: loadedRows.length, filtered: filteredRows.length }, view, semantics: manifest.semantics, columns: manifest.columns, csv: { filtered: object.key + "_kinematics_filtered.csv", full: object.key + "_kinematics_selected_datasets.csv", order: "source dataset and source row order (table sorting is presentation only)" }, viewUrl: window.location.href }, null, 2) + "\n", object.key + "_view_metadata.json", "application/json")}>Download view metadata</Button>
+                <Button variant="outline" size="sm" disabled={!allSelectedReady} onClick={() => downloadCsv(publicColumns, filteredRows, object.key, "filtered")}>Download filtered CSV ({filteredRows.length.toLocaleString()})</Button>
+                <Button variant="outline" size="sm" disabled={!allSelectedReady} onClick={() => downloadFile(JSON.stringify({ schemaVersion: 1, objectKey: object.key, sourceSnapshotModifiedAt: manifest.sourceSnapshotModifiedAt, publicDataSha256: manifest.publicDataSha256, publicDataHashScope: "base generated science rows before additive identity enrichment", identitySupplement: manifest.identitySupplement ?? null, sourceInputSha256: manifest.sourceInputSha256, selectedSources: selectedDatasetEntries.map((entry) => ({ id: entry.id, ...entry.source, chunks: entry.chunks })), counts: { selected: selectedTotalRecords, loaded: loadedRows.length, filtered: filteredRows.length }, view, semantics: manifest.semantics, columns: publicColumns, csv: { filtered: object.key + "_kinematics_filtered.csv", full: object.key + "_kinematics_selected_datasets.csv", order: "source dataset and source row order (table sorting is presentation only)" }, viewUrl: window.location.href }, null, 2) + "\n", object.key + "_view_metadata.json", "application/json")}>Download view metadata</Button>
                 <CopyViewLink />
                 <Button variant="outline" size="sm" onClick={() => updateView({ sky: !view.sky })}>{view.sky ? "Hide sky / widen table" : "Show sky view"}</Button>
               </div>
             </CardContent>
           </Card>
+
+          {view.selectedId ? <SelectedKinematicsRecord row={selectedRow} selectedId={view.selectedId} visible={selectionVisible} loading={loadingDatasetIds.size > 0} onShowInTable={() => tableRef.current?.showSelectedRecord()} onClear={() => updateView({ selectedId: null })} /> : null}
 
           {loadedRows.length === 0 ? (
             <Card className="mt-4">
@@ -811,10 +836,11 @@ export default function ObjectKinematicsClient({
             <div className={`mt-4 grid gap-4 ${view.sky ? "xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]" : ""}`}>
               <div className="min-w-0">
                 <MemberKinematicsTable
+                  ref={tableRef}
                   key={view.query + view.membership + view.datasets.join("|")}
                   view={view}
                   onViewChange={updateView}
-                  columns={manifest.columns}
+                  columns={publicColumns}
                   rows={filteredRows}
                   selectedId={selection?.id ?? null}
                   onToggleSelect={toggleSelectionByRow}

@@ -7,7 +7,7 @@ export function scienceGroup(column: string): string {
   if (/vlos|pmra|pmdec|velocity|proper_motion/.test(key)) return "Velocity & proper motion";
   if (/metallicity|feh|age|alpha/.test(key)) return "Metallicity & age";
   if (/structure|photometry|rhalf|rcore|rking|sersic|ellipticity|position_angle|magnitude|M_V|m_v|surface_brightness|mass|flux|luminosity/.test(key)) return "Structure & luminosity";
-  if (/^(name|key|star_id|object|source|host|ref|discovery|notes|type|confirmed)/.test(key)) return "Identity & provenance";
+  if (/^(name|key|star_id|gaia_source_id|record_id|object|source|host|ref|discovery|notes|type|confirmed)/.test(key)) return "Identity & provenance";
   return "Other";
 }
 

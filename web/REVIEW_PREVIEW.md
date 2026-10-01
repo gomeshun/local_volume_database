@@ -30,3 +30,13 @@ This branch is for hands-on review. Do not merge until the requester has approve
 Automated checks: build/typecheck, lint, numeric/tick regressions, real-data filter/CSV count cases, URL decoding/roundtrip, membership missingness, column-family presets, data integrity and static artifact budgets.
 
 Live browser interaction, mobile layout, browser CSV downloads/clipboard and Aladin/WebGL rendering require manual acceptance in the private preview. This execution environment did not provide a supported live browser preview bridge, so automated/unit checks are not represented as end-to-end UI verification.
+
+## Selected-record and identity review
+
+- Select the Geha dataset on Draco, leave the table on page 1, and click an off-page proper-motion point (for example SERENDIP source row 3562). The selected-record inspector should immediately show coordinates, velocity/errors, PM/errors, membership origins, source row and exact Gaia ID.
+- Click **Show in table**: the selected observation should appear on its correct page with focus/highlight. Repeat the action, change sort direction or page size, and try again.
+- Filter out the selected record: details remain, the inspector states that it is outside the filters, and Show in table is disabled. Reset filters and use Show in table again. Clear selection should remove the inspector and URL selection.
+- Restore a shared URL with a selection, and try a stale record ID. A stale/unloaded record must be reported as unavailable, never resolved by a reused label.
+- Search 30Drac: 29 Geha source records remain distinguishable by row and record ID. Original labels are preserved; Gaia IDs and CSV values must keep all digits. A blank Gaia field means not exposed/not reported, not proof of no source match.
+- Download view metadata and CSV: identity supplement/source hashes and all additive identity columns are retained. Base data hashes refer to unchanged science chunks.
+- If a Geha identity supplement fails, its dataset stays incomplete and exports stay disabled until retry/deselection. Non-Geha datasets must remain independently usable.

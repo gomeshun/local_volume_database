@@ -77,11 +77,35 @@
     },
     {
       "column": "star_id",
-      "label": "Source star identifier",
+      "label": "Legacy source label",
       "dataType": "string",
       "unit": "",
-      "description": "Star or observation identifier supplied by the source dataset.",
-      "notes": "Identifier namespaces are source-specific and are not guaranteed to match across datasets."
+      "description": "Original source star or target label retained for backwards compatibility; it is not a unique-star key.",
+      "notes": "Labels may repeat within a dataset, including Geha Object values such as SERENDIP and 30Drac. Object is a target name from a DEIMOS design file, not a mask name. Use source_row / record_id to distinguish records and gaia_source_id where reported."
+    },
+    {
+      "column": "source_target_label",
+      "label": "Source target label",
+      "dataType": "string",
+      "unit": "",
+      "description": "Original design-target label when explicitly identified by the source.",
+      "notes": "Geha Object is the target name from the DEIMOS design file. It may be reused for different stars and must not be used as a unique-star key. Blank elsewhere means no separate target label is exposed."
+    },
+    {
+      "column": "gaia_source_id",
+      "label": "Gaia source identifier",
+      "dataType": "string",
+      "unit": "",
+      "description": "Exact Gaia identifier explicitly provided by the source or its verified identity supplement.",
+      "notes": "Stored as decimal text, never a floating-point number. Geha and gaia_tap identifiers are Gaia DR3; consult other sources for release. Empty means not exposed or not reported, not proof that no Gaia match exists. No cross-source identity is inferred."
+    },
+    {
+      "column": "record_id",
+      "label": "Source record identity",
+      "dataType": "string",
+      "unit": "",
+      "description": "Canonical source-scoped observation locator composed of object, provider, dataset, table and zero-based source_row.",
+      "notes": "JSON-encoded components preserve separators unambiguously. Identifies a source record, not a unique physical star across datasets. Existing selection URLs continue to use the legacy stable record key."
     },
     {
       "column": "ra_deg",

@@ -1,3 +1,5 @@
+import type { IdentitySupplementReference } from "@/lib/kinematicsIdentity";
+
 export type PublicKinematicsRow = Record<string, string>;
 
 export type KinematicsChunk = {
@@ -29,6 +31,7 @@ export type KinematicsSource = {
 };
 
 export type KinematicsManifest = {
+  identitySupplement?: IdentitySupplementReference;
   schemaVersion: number;
   objectKey: string;
   objectName: string;

@@ -70,3 +70,44 @@ npm run refresh:simbad:retry-bad
 The app is configured for static export through `next.config.ts`. In GitHub Actions, `basePath` and `assetPrefix` are inferred from `GITHUB_REPOSITORY` so GitHub Pages project URLs are served from `/<repo>/`.
 
 Optional public environment variables for fork-specific links are documented in `.env.example`.
+
+## Source-record identity and selection
+
+Selecting a plot point, sky source or table row keeps a record inspector visible
+with coordinates, measurements and uncertainties, membership origins and source
+provenance. **Show in table** locates the record in the current filtered/sorted
+sample and navigates to its page. A filtered-out or unavailable URL selection is
+explicitly labelled; it is never silently replaced by a similarly named record.
+
+`star_id` remains the legacy source label so existing URLs and downloads retain
+compatibility. It is not unique, including within a source. For Geha Table A5,
+`Object` is a DEIMOS design-file target name, not a mask name. Its original value
+is separately exposed as `source_target_label`; `gaia_source_id` preserves the
+reported Gaia DR3 ID as an exact string. `record_id` is an unambiguous JSON-encoded
+source-record locator, not an inferred unique physical-star match.
+
+The committed science snapshot is preserved. Per-object
+`geha-record-identities.json` supplements add the missing identity fields and are
+bound to each manifest's base `publicDataSha256`, original `sourceInputSha256`, and
+the exact publisher MRT SHA-256. Before adding them, the offline migration checks
+every existing public field in all 11,232 Geha rows against independently
+normalized source rows. No measurement, reported membership, legacy label, base
+chunk or original snapshot timestamp/hash is rewritten. The UI verifies supplement
+checksums and scope before making the affected dataset ready; failed enrichment
+keeps that dataset incomplete and blocks full/filtered exports until retry.
+Unrelated source datasets remain usable.
+
+To reproduce the additive enrichment with a local copy of the registered Table A5:
+
+```bash
+# From the repository root, in a uv-managed environment with project dependencies
+uv run python scripts/build_geha_identity_supplement.py /path/to/apjae290dt5_mrt.txt
+```
+
+This command performs no network requests. The supplemental source SHA-256 is
+`3b731eb3b055cf14feeccf54cea862102b6be1c75a38b66ba1cbbe38664e82f4`.
+View-metadata downloads include both the base-science hashes and supplement/source
+hashes. CSV exports include the additive identity columns. Fresh normalization
+also writes these fields natively; membership propagation uses source-scoped Gaia
+IDs where explicit and never relies on a Geha design label alone when Gaia is
+missing. No cross-source membership propagation is introduced.

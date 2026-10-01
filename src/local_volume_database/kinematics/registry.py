@@ -639,7 +639,10 @@ KINEMATIC_SOURCES = [
         row_filters={"marz-flag": "1"},
         missing_values=("-999", "-99"),
         columns={
+            # Keep the legacy source label for compatibility; it is not unique.
             "star_id": ["Object", "Gaia"],
+            "source_target_label": "Object",
+            "gaia_source_id": "Gaia",
             "ra_deg": "RAdeg",
             "dec_deg": "DEdeg",
             "vlos_kms": "HRV",

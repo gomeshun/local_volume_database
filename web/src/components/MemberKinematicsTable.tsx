@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
+import { makeKinematicsRowId, selectedRecordPage, sortKinematicsRows } from "@/lib/kinematicsSelection";
+export { makeKinematicsRowId } from "@/lib/kinematicsSelection";
+export type KinematicsTableHandle = { showSelectedRecord: () => void };
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ColumnPicker } from "@/components/ColumnPicker";
@@ -13,11 +16,13 @@ import {
 } from "@/lib/kinematicsColumns";
 import type { PublicKinematicsRow } from "@/types/kinematics";
 
-type SortDirection = "asc" | "desc";
+
 
 
 const PREFERRED_COLUMNS = [
   "star_id",
+  "gaia_source_id",
+  "source_row",
   "source_kind",
   "source_provider",
   "source_name",
@@ -44,24 +49,6 @@ function bibcodeFromRefValue(value: string): string | null {
   const firstDigit = trimmed.search(/\d/);
   if (firstDigit < 0) return null;
   return trimmed.slice(firstDigit) || null;
-}
-
-function numericValue(value: string): number | null {
-  if (String(value ?? "").trim() === "") return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function compareValues(left: string, right: string, direction: SortDirection): number {
-  const leftNumber = numericValue(left);
-  const rightNumber = numericValue(right);
-  let result = 0;
-  if (leftNumber !== null && rightNumber !== null) {
-    result = leftNumber - rightNumber;
-  } else {
-    result = left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });
-  }
-  return direction === "asc" ? result : -result;
 }
 
 function renderCell(column: string, raw: string) {
@@ -99,20 +86,6 @@ function renderCell(column: string, raw: string) {
   return raw;
 }
 
-export function makeKinematicsRowId(row: PublicKinematicsRow, index: number): string {
-  const sourceIdentity = [
-    row.object_key,
-    row.source_provider,
-    row.source_name,
-    row.source_row,
-    row.star_id,
-  ];
-  if (sourceIdentity.slice(1).some((value) => String(value ?? "").trim() !== "")) {
-    return sourceIdentity.join(":");
-  }
-  return `${row.object_key || "record"}:${index}`;
-}
-
 export function MemberKinematicsTable({
   columns,
   rows,
@@ -120,7 +93,9 @@ export function MemberKinematicsTable({
   onToggleSelect,
   view,
   onViewChange,
+  ref,
 }: {
+  ref?: Ref<KinematicsTableHandle>;
   view: ResearchView;
   onViewChange: (patch: Partial<ResearchView>) => void;
   columns: string[];
@@ -129,6 +104,8 @@ export function MemberKinematicsTable({
   onToggleSelect: (row: PublicKinematicsRow, rowId: string) => void;
 }) {
   const [pageIndex, setPageIndex] = useState(0);
+  const [revealSequence, setRevealSequence] = useState(0);
+  const selectedRowRef = useRef<HTMLTableRowElement>(null);
   const pageSize = view.pageSize;
   const sort = view.sort;
   const visibleColumns = view.columns ?? PREFERRED_COLUMNS;
@@ -144,16 +121,24 @@ export function MemberKinematicsTable({
     [orderedColumns, visibleColumns],
   );
 
-  const filteredRows = rows;
-
-  const sortedRows = useMemo(() => {
-    if (!sort) return filteredRows;
-    return [...filteredRows].sort((left, right) => compareValues(left[sort.column] ?? "", right[sort.column] ?? "", sort.direction));
-  }, [filteredRows, sort]);
+  const sortedRows = useMemo(() => sortKinematicsRows(rows, sort), [rows, sort]);
 
   const pageCount = Math.max(1, Math.ceil(sortedRows.length / pageSize));
   const safePageIndex = Math.min(pageIndex, pageCount - 1);
   const pagedRows = sortedRows.slice(safePageIndex * pageSize, safePageIndex * pageSize + pageSize);
+
+  useImperativeHandle(ref, () => ({ showSelectedRecord() {
+    const page = selectedRecordPage(sortedRows, selectedId, pageSize);
+    if (page === null) return;
+    setPageIndex(page);
+    setRevealSequence((value) => value + 1);
+  } }), [sortedRows, selectedId, pageSize]);
+
+  useEffect(() => {
+    if (!revealSequence) return;
+    selectedRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    selectedRowRef.current?.focus({ preventScroll: true });
+  }, [revealSequence]);
 
   function toggleSort(column: string) {
     onViewChange({ sort: !sort || sort.column !== column ? { column, direction: "asc" } : sort.direction === "asc" ? { column, direction: "desc" } : null });
@@ -240,8 +225,10 @@ export function MemberKinematicsTable({
               return (
                 <TableRow
                   key={rowId}
+                  ref={selected ? selectedRowRef : undefined}
+                  aria-label={`Source label ${row.star_id || "unlabelled"}, source row ${row.source_row}`}
                   data-state={selected ? "selected" : undefined}
-                  className="cursor-pointer"
+                  className="cursor-pointer scroll-mt-64 outline-offset-[-2px] focus:outline focus:outline-2 focus:outline-primary"
                   onClick={() => onToggleSelect(row, rowId)}
                   role="button"
                   tabIndex={0}
@@ -254,7 +241,7 @@ export function MemberKinematicsTable({
                 >
                   {visibleOrderedColumns.map((column) => (
                     <TableCell key={column} className={`whitespace-nowrap ${column === "star_id" ? "sticky left-0 z-[2] bg-background shadow-sm" : ""}`}>
-                      {renderCell(column, row[column] ?? "")}
+                      {renderCell(column, row[column] ?? "")}{column === "star_id" ? <span className="ml-2 text-xs text-muted-foreground">row {row.source_row}</span> : null}
                     </TableCell>
                   ))}
                 </TableRow>
