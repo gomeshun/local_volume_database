@@ -111,3 +111,35 @@ hashes. CSV exports include the additive identity columns. Fresh normalization
 also writes these fields natively; membership propagation uses source-scoped Gaia
 IDs where explicit and never relies on a Geha design label alone when Gaia is
 missing. No cross-source membership propagation is introduced.
+
+## Scatter-plot keyboard navigation
+
+Each nonempty scatter plot is one Tab stop. Arrow keys move through the rendered
+sample in its existing order (not spatial order, including the reversed RA axis).
+Home and End jump to the first and last displayed point. Enter or Space toggles
+the active record's selection; navigation alone does not change selection. Tab
+and Shift+Tab leave the plot normally. Keyboard focus has a high-contrast ring,
+separate from the orange selected-record marker.
+
+The listbox exposes an active descendant and each point's selected state. On
+entry, an existing selected point is active, including a selected record inserted
+into the deterministic preview. If filtering or an axis change removes the active
+point, navigation falls back to the selected displayed record or the first point.
+An empty chart is removed from Tab order but keeps its wrapper so an already
+focused chart does not drop focus to the document body.
+
+`npm run test:ui` includes pure navigation tests and mounted React/JSDOM component
+regressions. JSDOM checks event wiring, focus ownership and ARIA attributes, but
+cannot verify native Tab traversal, rendered focus contrast or a browser/screen
+reader accessibility tree. Before merging keyboard changes, check these in a real
+browser on a populated object page:
+
+1. Tab into each of the three scatter plots and exit with one Tab or Shift+Tab.
+2. Navigate with all four arrows and Home/End; confirm only the focus ring moves.
+3. Use Enter and Space repeatedly, and verify the inspector/table retain the
+   source-record identity, including a selected point outside the usual sample.
+4. Change filters/axes and remove the active point, including an empty sample;
+   verify a valid remaining focus target and independent focus in other charts.
+5. Check that the accessibility tree exposes listbox options, active descendant,
+   selected state and sample size, and that keyboard focus is visible in both
+   light and dark themes.
