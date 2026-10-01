@@ -1,0 +1,42 @@
+name: Validate web
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+      - name: Lint and test UI behavior
+        working-directory: web
+        run: |
+          npm run lint
+          npm run test:ui
+      - name: Build static export
+        working-directory: web
+        env:
+          GITHUB_ACTIONS: "true"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: npm run build
+      - name: Verify data and artifact budgets
+        working-directory: web
+        run: |
+          npm run test:data
+          npm run check:artifacts

@@ -16,6 +16,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:ui": "node --experimental-strip-types --test scripts/test-ui.mjs",
     "test:data": "node scripts/test-generated-data.mjs",
     "check:artifacts": "node scripts/check-artifact-budgets.mjs"
   },
