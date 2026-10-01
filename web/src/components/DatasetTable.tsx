@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { vizierCatalogs } from "@/generated/vizier_catalogs";
 import { simbadMappings } from "@/generated/simbad_mappings";
 import { kinematicObjectByKey } from "@/generated/kinematics_summary";
+import { datasetColumnOptions } from "@/lib/datasetSorting";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -257,9 +258,10 @@ export function DatasetTable({
           )}
         </Button>
       ),
-      accessorFn: (d) => d.row[c] ?? "",
+      ...datasetColumnOptions(c, rows),
       cell: (info) => {
-        const raw = String(info.getValue() ?? "");
+        // Sorting uses typed values; display the original CSV representation.
+        const raw = info.row.original.row[c] ?? "";
         if (!raw) return "";
 
         // Name cell: render hyperlink to SIMBAD only if a reliable mapping (mainId + matched) exists
@@ -414,7 +416,7 @@ export function DatasetTable({
         return raw;
       },
     }));
-  }, [orderedColumns, addingChildren, childrenError, datasetSlug]);
+  }, [orderedColumns, rows, addingChildren, childrenError, datasetSlug]);
 
   const table = useReactTable({
     data,

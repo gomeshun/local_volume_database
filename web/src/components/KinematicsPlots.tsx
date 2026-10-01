@@ -9,6 +9,7 @@ import {
   type KinematicsDatasetStyle,
 } from "@/lib/kinematicsDatasets";
 import type { PublicKinematicsRow } from "@/types/kinematics";
+import { formatTick } from "@/lib/plotTicks";
 
 type PlotPoint = {
   id: string;
@@ -105,27 +106,6 @@ function ticks(domain: [number, number], count = 5): number[] {
     { length: count },
     (_, index) => domain[0] + ((domain[1] - domain[0]) * index) / (count - 1),
   );
-}
-
-function formatTick(value: number, resolution?: number): string {
-  const absolute = Math.abs(value);
-  if (absolute >= 10_000 || (absolute > 0 && absolute < 0.001)) {
-    return value.toExponential(1);
-  }
-  const digits =
-    resolution && resolution > 0
-      ? Math.min(
-          6,
-          Math.max(0, Math.ceil(-Math.log10(resolution)) + 1),
-        )
-      : absolute >= 100
-        ? 0
-        : absolute >= 10
-          ? 1
-          : absolute >= 1
-            ? 2
-            : 3;
-  return value.toFixed(digits).replace(/\.?0+$/, "");
 }
 
 function quantile(sortedValues: number[], probability: number): number {
