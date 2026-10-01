@@ -13,9 +13,9 @@ export function ColumnPicker({ columns, visible, onChange, defaults, identity, l
   const [query, setQuery] = useState("");
   const matching = columns.filter((column) => `${column} ${label(column)} ${scienceGroup(column)}`.toLowerCase().includes(query.toLowerCase()));
   const select = (next: string[]) => onChange(columns.filter((column) => column === identity || next.includes(column)));
-  return <div className="relative">
+  return <div className="relative" onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
     <Button variant="outline" size="sm" aria-expanded={open} onClick={() => setOpen(!open)}>Columns ({visible.length})</Button>
-    {open ? <div className="fixed inset-x-4 top-[12vh] z-30 mx-auto max-w-lg rounded-lg border bg-background p-3 shadow-lg" role="region" aria-label="Column chooser" onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
+    {open ? <div className="fixed inset-x-4 top-[12vh] z-30 mx-auto max-w-lg rounded-lg border bg-background p-3 shadow-lg" role="region" aria-label="Column chooser">
       <div className="mb-2 flex items-center justify-between gap-2"><span className="font-medium">Visible columns</span><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Close</Button></div>
       <Input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search columns" placeholder="Search values, errors or references…" />
       <div className="my-2 flex flex-wrap gap-1">{["Basic", "Spectroscopy", "Proper motion", "All"].map((preset) => <Button key={preset} variant="outline" size="sm" onClick={() => select(presetColumns(columns, preset, defaults))}>{preset}</Button>)}</div>
