@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { makeKinematicsRowId } from "@/components/MemberKinematicsTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -233,7 +233,7 @@ function ScatterPlot({
       <div>
         <div className="mb-1 text-sm font-medium">{title}</div>
         <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-          No selected-dataset records contain both quantities.
+          No filtered records contain both quantities.
         </div>
       </div>
     );
@@ -265,11 +265,11 @@ function ScatterPlot({
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="h-auto w-full rounded-md border bg-background"
         role="img"
-        aria-label={`${title}, ${points.length} selected-dataset records`}
+        aria-label={`${title}, ${points.length} filtered records`}
       >
         <title>{title}</title>
         <desc>
-          Scatter plot of {yLabel} against {xLabel} for {points.length} selected-dataset records.
+          Scatter plot of {yLabel} against {xLabel} for {points.length} filtered records.
         </desc>
         <line
           x1={MARGIN.left}
@@ -398,7 +398,7 @@ function VelocityHistogram({
       <div>
         <div className="mb-1 text-sm font-medium">Line-of-sight velocity distribution</div>
         <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-          No selected-dataset records contain a line-of-sight velocity.
+          No filtered records contain a line-of-sight velocity.
         </div>
       </div>
     );
@@ -460,11 +460,11 @@ function VelocityHistogram({
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="h-auto w-full rounded-md border bg-background"
         role="img"
-        aria-label={`Line-of-sight velocity histogram, ${values.length} selected-dataset records in ${bins.length} bins`}
+        aria-label={`Line-of-sight velocity histogram, ${values.length} filtered records in ${bins.length} bins`}
       >
         <title>Line-of-sight velocity distribution</title>
         <desc>
-          Histogram of line-of-sight velocity for {values.length} selected-dataset records in {bins.length} automatically selected bins.
+          Histogram of line-of-sight velocity for {values.length} filtered records in {bins.length} automatically selected bins.
         </desc>
         <line
           x1={MARGIN.left}
@@ -617,33 +617,24 @@ function AxisSelector({
   );
 }
 
-function preferredAvailableAxis(
-  availableOptions: AxisOption[],
-  preferences: string[],
-  excludedKey?: string,
-): string {
-  const availableKeys = new Set(availableOptions.map(({ key }) => key));
-  return (
-    preferences.find((key) => key !== excludedKey && availableKeys.has(key)) ??
-    availableOptions.find(({ key }) => key !== excludedKey)?.key ??
-    availableOptions[0]?.key ??
-    ""
-  );
-}
-
 export function KinematicsPlots({
   rows,
   datasets,
   selectedId,
   onToggleSelect,
+  xAxis,
+  yAxis,
+  onAxisChange,
 }: {
+  xAxis: string;
+  yAxis: string;
+  onAxisChange: (patch: { xAxis?: string; yAxis?: string }) => void;
   rows: PublicKinematicsRow[];
   datasets: KinematicsDatasetStyle[];
   selectedId: string | null;
   onToggleSelect: (row: PublicKinematicsRow, rowId: string) => void;
 }) {
-  const [xAxis, setXAxis] = useState("feh");
-  const [yAxis, setYAxis] = useState("vlos_kms");
+
   const datasetStyleById = useMemo(
     () => new Map(datasets.map((dataset) => [dataset.id, dataset])),
     [datasets],
@@ -663,28 +654,10 @@ export function KinematicsPlots({
       ),
     [rows],
   );
-  const availableAxisOptions = useMemo(
-    () => AXIS_OPTIONS.filter((option) => (axisCounts.get(option.key) ?? 0) > 0),
-    [axisCounts],
-  );
-
-  const availableAxisKeys = new Set(
-    availableAxisOptions.map(({ key }) => key),
-  );
-  const effectiveXAxis = availableAxisKeys.has(xAxis)
-    ? xAxis
-    : preferredAvailableAxis(
-        availableAxisOptions,
-        ["feh", "pmra_masyr", "ra_deg", "vlos_kms"],
-        yAxis,
-      );
-  const effectiveYAxis = availableAxisKeys.has(yAxis)
-    ? yAxis
-    : preferredAvailableAxis(
-        availableAxisOptions,
-        ["vlos_kms", "pmdec_masyr", "dec_deg", "feh"],
-        effectiveXAxis,
-      );
+  // Keep explicit axis choices when a filter leaves no measurements.
+  const availableAxisOptions = AXIS_OPTIONS;
+  const effectiveXAxis = xAxis;
+  const effectiveYAxis = yAxis;
 
   const properMotionPoints = useMemo(
     () =>
@@ -778,9 +751,9 @@ export function KinematicsPlots({
   return (
     <Card className="mt-4">
       <CardHeader>
-        <CardTitle>Selected-dataset diagnostics</CardTitle>
+        <CardTitle>Filtered-sample diagnostics ({rows.length.toLocaleString()} records)</CardTitle>
         <CardDescription>
-          Colors identify datasets in every panel. Records are not de-duplicated
+          Each panel uses the shared sample and counts only records with the required quantities. Colors identify datasets in every panel. Records are not de-duplicated
           across providers. Click a scatter point to link it with the table and
           sky view.
         </CardDescription>
@@ -837,14 +810,14 @@ export function KinematicsPlots({
               value={effectiveXAxis}
               options={availableAxisOptions}
               counts={axisCounts}
-              onValueChange={setXAxis}
+              onValueChange={(xAxis) => onAxisChange({ xAxis })}
             />
             <AxisSelector
               label="Y axis"
               value={effectiveYAxis}
               options={availableAxisOptions}
               counts={axisCounts}
-              onValueChange={setYAxis}
+              onValueChange={(yAxis) => onAxisChange({ yAxis })}
             />
           </div>
           <ScatterPlot

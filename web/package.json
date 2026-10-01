@@ -16,9 +16,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:ui": "node --experimental-strip-types --test scripts/test-ui.mjs",
+    "test:ui": "node --experimental-strip-types --test scripts/test-ui.mjs scripts/test-view.mjs",
     "test:data": "node scripts/test-generated-data.mjs",
-    "check:artifacts": "node scripts/check-artifact-budgets.mjs"
+    "check:artifacts": "node scripts/check-artifact-budgets.mjs",
+    "test:view": "node --experimental-strip-types --test scripts/test-view.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",

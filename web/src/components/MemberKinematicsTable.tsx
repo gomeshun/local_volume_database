@@ -3,30 +3,18 @@
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ColumnPicker } from "@/components/ColumnPicker";
+import type { ResearchView } from "@/lib/researchView";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   describeKinematicsColumn,
   formatKinematicsColumnLabel,
-  getKinematicsColumnDefinition,
 } from "@/lib/kinematicsColumns";
 import type { PublicKinematicsRow } from "@/types/kinematics";
 
 type SortDirection = "asc" | "desc";
 
-type SortState = {
-  column: string;
-  direction: SortDirection;
-} | null;
 
 const PREFERRED_COLUMNS = [
   "star_id",
@@ -130,20 +118,20 @@ export function MemberKinematicsTable({
   rows,
   selectedId,
   onToggleSelect,
+  view,
+  onViewChange,
 }: {
+  view: ResearchView;
+  onViewChange: (patch: Partial<ResearchView>) => void;
   columns: string[];
   rows: PublicKinematicsRow[];
   selectedId: string | null;
   onToggleSelect: (row: PublicKinematicsRow, rowId: string) => void;
 }) {
-  const [query, setQuery] = useState("");
-  const [membershipFilter, setMembershipFilter] = useState("all");
-  const [pageSize, setPageSize] = useState(50);
   const [pageIndex, setPageIndex] = useState(0);
-  const [sort, setSort] = useState<SortState>({ column: "star_id", direction: "asc" });
-  const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(columns.map((column) => [column, PREFERRED_COLUMNS.includes(column)])),
-  );
+  const pageSize = view.pageSize;
+  const sort = view.sort;
+  const visibleColumns = view.columns ?? PREFERRED_COLUMNS;
 
   const orderedColumns = useMemo(() => {
     const preferred = PREFERRED_COLUMNS.filter((column) => columns.includes(column));
@@ -152,54 +140,11 @@ export function MemberKinematicsTable({
   }, [columns]);
 
   const visibleOrderedColumns = useMemo(
-    () => orderedColumns.filter((column) => visibleColumns[column]),
+    () => orderedColumns.filter((column) => column === "star_id" || visibleColumns.includes(column)),
     [orderedColumns, visibleColumns],
   );
 
-  const filteredRows = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return rows.filter((row) => {
-      const membershipProbability = numericValue(row.membership_probability);
-      if (
-        membershipFilter === "available" &&
-        membershipProbability === null &&
-        !String(row.membership_flag ?? "").trim()
-      ) {
-        return false;
-      }
-      if (
-        membershipFilter === "source-reported" &&
-        row.membership_probability_origin !== "reported" &&
-        row.membership_flag_origin !== "reported"
-      ) {
-        return false;
-      }
-      if (
-        membershipFilter === "probability-0.5" &&
-        (membershipProbability === null || membershipProbability < 0.5)
-      ) {
-        return false;
-      }
-      if (
-        membershipFilter === "probability-0.9" &&
-        (membershipProbability === null || membershipProbability < 0.9)
-      ) {
-        return false;
-      }
-      if (!normalizedQuery) return true;
-      return [
-        row.star_id,
-        row.source_kind,
-        row.source_name,
-        row.source_provider,
-        row.source_ref,
-        row.membership_flag,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedQuery);
-    });
-  }, [membershipFilter, query, rows]);
+  const filteredRows = rows;
 
   const sortedRows = useMemo(() => {
     if (!sort) return filteredRows;
@@ -211,87 +156,20 @@ export function MemberKinematicsTable({
   const pagedRows = sortedRows.slice(safePageIndex * pageSize, safePageIndex * pageSize + pageSize);
 
   function toggleSort(column: string) {
-    setSort((current) => {
-      if (!current || current.column !== column) return { column, direction: "asc" };
-      if (current.direction === "asc") return { column, direction: "desc" };
-      return null;
-    });
+    onViewChange({ sort: !sort || sort.column !== column ? { column, direction: "asc" } : sort.direction === "asc" ? { column, direction: "desc" } : null });
   }
 
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Input
-          className="h-9 w-full sm:w-[min(520px,100%)]"
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setPageIndex(0);
-          }}
-          placeholder="Search selected-dataset records or sources…"
-          aria-label="Search selected kinematic records"
-        />
-
-        <div className="text-sm text-muted-foreground">
-          Showing {filteredRows.length.toLocaleString()} selected-dataset records
-        </div>
-
+        <div className="text-sm text-muted-foreground">Table: {rows.length.toLocaleString()} filtered records</div>
         <div className="flex flex-wrap items-center gap-2">
-          <Select
-            value={membershipFilter}
-            onValueChange={(value) => {
-              setMembershipFilter(value);
-              setPageIndex(0);
-            }}
-          >
-            <SelectTrigger className="h-9 w-[190px]" aria-label="Filter reported membership">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="all">All membership</SelectItem>
-              <SelectItem value="available">Any membership value</SelectItem>
-              <SelectItem value="source-reported">Reported on source row</SelectItem>
-              <SelectItem value="probability-0.5">P ≥ 0.5</SelectItem>
-              <SelectItem value="probability-0.9">P ≥ 0.9</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="max-h-[60vh] w-72 overflow-y-auto">
-              <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {orderedColumns.map((column) => {
-                const definition = getKinematicsColumnDefinition(column);
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column}
-                    checked={Boolean(visibleColumns[column])}
-                    onCheckedChange={(checked) => setVisibleColumns((current) => ({ ...current, [column]: Boolean(checked) }))}
-                  >
-                    <span>
-                      {formatKinematicsColumnLabel(column)}
-                      {definition ? (
-                        <span className="text-muted-foreground">
-                          {" "}
-                          — {definition.label}
-                        </span>
-                      ) : null}
-                    </span>
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ColumnPicker columns={orderedColumns} visible={visibleOrderedColumns} defaults={PREFERRED_COLUMNS} identity="star_id" label={formatKinematicsColumnLabel} onChange={(columns) => onViewChange({ columns })} />
 
           <Select
             value={String(pageSize)}
             onValueChange={(value) => {
-              setPageSize(Number(value));
+              onViewChange({ pageSize: Number(value) });
               setPageIndex(0);
             }}
           >
@@ -330,7 +208,7 @@ export function MemberKinematicsTable({
               {visibleOrderedColumns.map((column) => {
                 const sorted = sort?.column === column ? sort.direction : null;
                 return (
-                  <TableHead key={column} className="sticky top-0 z-[1] whitespace-nowrap bg-background/80 backdrop-blur">
+                  <TableHead key={column} className={`sticky top-0 whitespace-nowrap bg-background ${column === "star_id" ? "left-0 z-[3] shadow-sm" : "z-[1]"}`}>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -375,7 +253,7 @@ export function MemberKinematicsTable({
                   }}
                 >
                   {visibleOrderedColumns.map((column) => (
-                    <TableCell key={column} className="whitespace-nowrap">
+                    <TableCell key={column} className={`whitespace-nowrap ${column === "star_id" ? "sticky left-0 z-[2] bg-background shadow-sm" : ""}`}>
                       {renderCell(column, row[column] ?? "")}
                     </TableCell>
                   ))}
