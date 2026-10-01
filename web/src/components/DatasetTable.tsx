@@ -21,14 +21,8 @@ import { kinematicObjectByKey } from "@/generated/kinematics_summary";
 import { datasetColumnOptions } from "@/lib/datasetSorting";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ColumnPicker } from "@/components/ColumnPicker";
+import type { ResearchView } from "@/lib/researchView";
 import {
   Select,
   SelectContent,
@@ -131,18 +125,26 @@ function makeRowId(row: Row, idx: number): string {
 export function DatasetTable({
   columns,
   rows,
+  sourceRows,
   selectedId,
   onToggleSelect,
   datasetSlug,
+  view,
+  onViewChange,
 }: {
+  view: ResearchView;
+  onViewChange: (patch: Partial<ResearchView>) => void;
   columns: string[];
   rows: Row[];
+  sourceRows: Row[];
   selectedId: string | null;
   onToggleSelect: (row: Row, rowId: string) => void;
   datasetSlug?: string;
 }) {
-  const [query, setQuery] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [pageIndex, setPageIndex] = useState(0);
+  const query = view.query;
+  const setQuery = (query: string) => onViewChange({ query, selectedId: null });
+  const sorting: SortingState = view.sort && columns.includes(view.sort.column) ? [{ id: view.sort.column, desc: view.sort.direction === "desc" }] : [];
   // Whether Aladin is currently in fullscreen. Updated via a global event dispatched
   // by the Aladin viewer so we can hide sticky headers that would otherwise overlay.
   const [aladinFullscreen, setAladinFullscreen] = useState(false);
@@ -222,11 +224,7 @@ export function DatasetTable({
     return vis;
   }, [columns]);
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => initialColumnVisibility);
-
-  useEffect(() => {
-    setColumnVisibility(initialColumnVisibility);
-  }, [initialColumnVisibility]);
+  const columnVisibility: VisibilityState = view.columns ? Object.fromEntries(columns.map((column) => [column, column === "name" || view.columns!.includes(column)])) : initialColumnVisibility;
 
   const indexedRows = useMemo(() => rows.map((row, idx) => ({ row, idx })), [rows]);
 
@@ -258,7 +256,7 @@ export function DatasetTable({
           )}
         </Button>
       ),
-      ...datasetColumnOptions(c, rows),
+      ...datasetColumnOptions(c, sourceRows),
       cell: (info) => {
         // Sorting uses typed values; display the original CSV representation.
         const raw = info.row.original.row[c] ?? "";
@@ -416,7 +414,7 @@ export function DatasetTable({
         return raw;
       },
     }));
-  }, [orderedColumns, rows, addingChildren, childrenError, datasetSlug]);
+  }, [orderedColumns, sourceRows, addingChildren, childrenError, datasetSlug]);
 
   const table = useReactTable({
     data,
@@ -425,13 +423,22 @@ export function DatasetTable({
       globalFilter: query,
       sorting,
       columnVisibility,
+      pagination: { pageIndex, pageSize: view.pageSize },
     },
     onGlobalFilterChange: (v) => {
       // TanStack may pass updater functions; we keep it simple by expecting string.
       setQuery(String(v ?? ""));
     },
-    onSortingChange: setSorting,
-    onColumnVisibilityChange: setColumnVisibility,
+    onSortingChange: (updater) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater;
+      onViewChange({ sort: next.length ? { column: next[0].id, direction: next[0].desc ? "desc" : "asc" } : null });
+    },
+    onPaginationChange: (updater) => {
+      const current = { pageIndex, pageSize: view.pageSize };
+      const next = typeof updater === "function" ? updater(current) : updater;
+      setPageIndex(next.pageIndex);
+      if (next.pageSize !== view.pageSize) onViewChange({ pageSize: next.pageSize });
+    },
     globalFilterFn: (row, _columnId, filterValue) => {
       const q = String(filterValue ?? "").trim().toLowerCase();
       if (!q) return true;
@@ -532,29 +539,7 @@ export function DatasetTable({
           Showing {table.getFilteredRowModel().rows.length.toLocaleString()} rows
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="max-h-[60vh] w-72 overflow-y-auto">
-              <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {table
-                .getAllLeafColumns()
-                .filter((col) => col.getCanHide())
-                .map((col) => (
-                  <DropdownMenuCheckboxItem
-                    key={col.id}
-                    checked={col.getIsVisible()}
-                    onCheckedChange={(checked) => col.toggleVisibility(Boolean(checked))}
-                  >
-                    {formatColumnLabel(String(col.id))}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ColumnPicker columns={orderedColumns} visible={orderedColumns.filter((column) => columnVisibility[column])} defaults={Object.keys(initialColumnVisibility).filter((column) => initialColumnVisibility[column])} identity="name" label={formatColumnLabel} onChange={(columns) => onViewChange({ columns })} />
 
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Rows</span>
@@ -605,7 +590,7 @@ export function DatasetTable({
                   {hg.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="sticky top-0 z-[1] whitespace-nowrap bg-background/80 backdrop-blur"
+                      className={`sticky top-0 whitespace-nowrap bg-background ${header.column.id === "name" ? "left-0 z-[3] shadow-sm" : "z-[1]"}`}
                     >
                       {header.isPlaceholder
                         ? null
@@ -636,7 +621,7 @@ export function DatasetTable({
                     }}
                   >
                     {tr.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="whitespace-nowrap">
+                      <TableCell key={cell.id} className={`whitespace-nowrap ${cell.column.id === "name" ? "sticky left-0 z-[2] bg-background shadow-sm" : ""}`}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}

@@ -8,6 +8,11 @@ import {
   makeKinematicsRowId,
 } from "@/components/MemberKinematicsTable";
 import { KinematicsPlots } from "@/components/KinematicsPlots";
+import { CopyViewLink } from "@/components/CopyViewLink";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DEFAULT_RESEARCH_VIEW, decodeResearchView, filterKinematicsRows, rowsToCsv, type ResearchView } from "@/lib/researchView";
+import { useUrlView } from "@/lib/useUrlView";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -75,12 +80,17 @@ function triggerCsvDownload(lines: string[], fileName: string) {
   URL.revokeObjectURL(url);
 }
 
-function downloadCsv(columns: string[], rows: PublicKinematicsRow[], objectKey: string) {
-  const lines = [
-    columns.map(csvCell).join(","),
-    ...rows.map((row) => columns.map((column) => csvCell(row[column] ?? "")).join(",")),
-  ];
-  triggerCsvDownload(lines, `${objectKey}_kinematics_selected.csv`);
+function downloadFile(text: string, fileName: string, type: string) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadCsv(columns: string[], rows: PublicKinematicsRow[], objectKey: string, scope: string) {
+  downloadFile(rowsToCsv(columns, rows), objectKey + "_kinematics_" + scope + ".csv", "text/csv;charset=utf-8");
 }
 
 function downloadColumnGuideCsv(columns: string[], objectKey: string) {
@@ -118,24 +128,19 @@ export default function ObjectKinematicsClient({
 }: {
   object: KinematicObjectSummary;
 }) {
+  const [view, setView, viewReady] = useUrlView("view", DEFAULT_RESEARCH_VIEW, decodeResearchView);
+  const updateView = useCallback((patch: Partial<ResearchView>) => setView((current) => ({ ...current, ...patch })), [setView]);
+  const selectedDatasetIds = useMemo(() => new Set(view.datasets), [view.datasets]);
   const chunkCacheRef = useRef(new Map<string, PublicKinematicsRow[]>());
   const inFlightPathsRef = useRef(new Map<string, Promise<void>>());
   const [cacheVersion, setCacheVersion] = useState(0);
   const [manifest, setManifest] = useState<KinematicsManifest | null>(null);
   const [manifestError, setManifestError] = useState<string | null>(null);
   const [loadingManifest, setLoadingManifest] = useState(object.totalRecords > 0);
-  const [selectedDatasetIds, setSelectedDatasetIds] = useState<Set<string>>(
-    () => new Set(),
-  );
   const [loadingDatasetIds, setLoadingDatasetIds] = useState<Set<string>>(
     () => new Set(),
   );
   const [datasetErrors, setDatasetErrors] = useState<Record<string, string>>({});
-  const [selection, setSelection] = useState<{
-    id: string;
-    row: PublicKinematicsRow;
-  } | null>(null);
-
   useEffect(() => {
     if (!object.manifestPath) {
       setLoadingManifest(false);
@@ -156,10 +161,8 @@ export default function ObjectKinematicsClient({
         chunkCacheRef.current.clear();
         inFlightPathsRef.current.clear();
         setCacheVersion(0);
-        setSelectedDatasetIds(new Set());
         setLoadingDatasetIds(new Set());
         setDatasetErrors({});
-        setSelection(null);
         setManifest(payload);
       })
       .catch((error: unknown) => {
@@ -273,34 +276,15 @@ export default function ObjectKinematicsClient({
     [datasetEntryById, loadChunk],
   );
 
-  const toggleDataset = useCallback(
-    (datasetId: string, checked: boolean) => {
-      setSelectedDatasetIds((current) => {
-        const next = new Set(current);
-        if (checked) next.add(datasetId);
-        else next.delete(datasetId);
-        return next;
-      });
-      setSelection((current) =>
-        !checked && current && rowDatasetId(current.row) === datasetId
-          ? null
-          : current,
-      );
-      if (checked) void loadDatasets([datasetId]);
-    },
-    [loadDatasets],
-  );
+  useEffect(() => {
+    if (viewReady && manifest) void loadDatasets(view.datasets);
+  }, [viewReady, manifest, view.datasets, loadDatasets]);
 
-  const selectAllDatasets = useCallback(() => {
-    const ids = datasetEntries.map((entry) => entry.id);
-    setSelectedDatasetIds(new Set(ids));
-    void loadDatasets(ids);
-  }, [datasetEntries, loadDatasets]);
-
-  const clearAllDatasets = useCallback(() => {
-    setSelectedDatasetIds(new Set());
-    setSelection(null);
-  }, []);
+  const toggleDataset = useCallback((datasetId: string, checked: boolean) => {
+    setView((current) => ({ ...current, datasets: checked ? [...new Set([...current.datasets, datasetId])] : current.datasets.filter((id) => id !== datasetId), selectedId: null }));
+  }, [setView]);
+  const selectAllDatasets = useCallback(() => updateView({ datasets: datasetEntries.map((entry) => entry.id), selectedId: null }), [datasetEntries, updateView]);
+  const clearAllDatasets = useCallback(() => updateView({ datasets: [], selectedId: null }), [updateView]);
 
   const selectedDatasetEntries = useMemo(
     () => datasetEntries.filter((entry) => selectedDatasetIds.has(entry.id)),
@@ -347,14 +331,18 @@ export default function ObjectKinematicsClient({
     selectedDatasetEntries.length > 0 &&
     readyDatasetEntries.length === selectedDatasetEntries.length;
 
+  const filteredRows = useMemo(() => filterKinematicsRows(loadedRows, view.query, view.membership), [loadedRows, view.query, view.membership]);
   const rowById = useMemo(() => {
     const map = new Map<string, PublicKinematicsRow>();
-    loadedRows.forEach((row, index) => map.set(makeKinematicsRowId(row, index), row));
+    filteredRows.forEach((row, index) => map.set(makeKinematicsRowId(row, index), row));
     return map;
-  }, [loadedRows]);
+  }, [filteredRows]);
+  const selectedRow = view.selectedId ? rowById.get(view.selectedId) : undefined;
+  const selection = useMemo(() => selectedRow && view.selectedId ? { id: view.selectedId, row: selectedRow } : null, [selectedRow, view.selectedId]);
+  const coordinateCount = filteredRows.filter((row) => finiteNumber(row.ra_deg) !== null && finiteNumber(row.dec_deg) !== null).length;
 
   const plottedSources = useMemo(() => {
-    const rowsWithCoordinates = loadedRows
+    const rowsWithCoordinates = filteredRows
       .map((row, index) => {
         const ra = finiteNumber(row.ra_deg);
         const dec = finiteNumber(row.dec_deg);
@@ -373,7 +361,7 @@ export default function ObjectKinematicsClient({
     if (rowsWithCoordinates.length <= MAX_ALADIN_SOURCES) return rowsWithCoordinates;
     const stride = Math.ceil(rowsWithCoordinates.length / MAX_ALADIN_SOURCES);
     return rowsWithCoordinates.filter((_, index) => index % stride === 0);
-  }, [loadedRows, object.name]);
+  }, [filteredRows, object.name]);
 
   const initialTarget = useMemo(() => {
     const ra = finiteNumber(object.ra);
@@ -395,20 +383,16 @@ export default function ObjectKinematicsClient({
     (rowId: string) => {
       const row = rowById.get(rowId);
       if (!row) return;
-      setSelection((current) =>
-        current?.id === rowId ? null : { id: rowId, row },
-      );
+      setView((current) => ({ ...current, selectedId: current.selectedId === rowId ? null : rowId }));
     },
-    [rowById],
+    [rowById, setView],
   );
 
   const toggleSelectionByRow = useCallback(
-    (row: PublicKinematicsRow, rowId: string) => {
-      setSelection((current) =>
-        current?.id === rowId ? null : { id: rowId, row },
-      );
+    (_row: PublicKinematicsRow, rowId: string) => {
+      setView((current) => ({ ...current, selectedId: current.selectedId === rowId ? null : rowId }));
     },
-    [],
+    [setView],
   );
 
   return (
@@ -521,9 +505,9 @@ export default function ObjectKinematicsClient({
                   variant="outline"
                   size="sm"
                   disabled={!allSelectedReady}
-                  onClick={() => downloadCsv(manifest.columns, loadedRows, object.key)}
+                  onClick={() => downloadCsv(manifest.columns, loadedRows, object.key, "selected_datasets")}
                 >
-                  Download selected CSV
+                  Download full selected datasets ({loadedRows.length.toLocaleString()})
                 </Button>
                 <Button
                   variant="outline"
@@ -780,6 +764,27 @@ export default function ObjectKinematicsClient({
             </CardContent>
           </Card>
 
+          <Card className="mt-4">
+            <CardHeader><CardTitle>Shared research sample</CardTitle><CardDescription>Search and membership filters apply to the table, plots, sky view and filtered CSV. Downloads always retain every public column and its provenance; unreported membership stays missing.</CardDescription></CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap items-center gap-3">
+                <Input className="w-full sm:max-w-md" value={view.query} onChange={(event) => updateView({ query: event.target.value, selectedId: null })} placeholder="Search records or sources…" aria-label="Search selected kinematic records" />
+                <Select value={view.membership} onValueChange={(membership) => updateView({ membership, selectedId: null })}>
+                  <SelectTrigger className="w-full sm:w-[220px]" aria-label="Filter reported membership"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">All membership</SelectItem><SelectItem value="available">Any membership value</SelectItem><SelectItem value="source-reported">Reported on source row</SelectItem><SelectItem value="probability-0.5">P ≥ 0.5</SelectItem><SelectItem value="probability-0.9">P ≥ 0.9</SelectItem></SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" onClick={() => updateView({ query: "", membership: "all" })}>Reset filters</Button>
+              </div>
+              <p className="my-3 text-sm font-medium" role="status">Shared sample: {filteredRows.length.toLocaleString()} filtered / {loadedRows.length.toLocaleString()} loaded / {selectedTotalRecords.toLocaleString()} selected records{!allSelectedReady && selectedDatasetEntries.length > 0 ? " · partial sample: waiting for all selected datasets" : ""}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" disabled={!allSelectedReady} onClick={() => downloadCsv(manifest.columns, filteredRows, object.key, "filtered")}>Download filtered CSV ({filteredRows.length.toLocaleString()})</Button>
+                <Button variant="outline" size="sm" disabled={!allSelectedReady} onClick={() => downloadFile(JSON.stringify({ schemaVersion: 1, objectKey: object.key, sourceSnapshotModifiedAt: manifest.sourceSnapshotModifiedAt, publicDataSha256: manifest.publicDataSha256, sourceInputSha256: manifest.sourceInputSha256, selectedSources: selectedDatasetEntries.map((entry) => ({ id: entry.id, ...entry.source, chunks: entry.chunks })), counts: { selected: selectedTotalRecords, loaded: loadedRows.length, filtered: filteredRows.length }, view, semantics: manifest.semantics, columns: manifest.columns, csv: { filtered: object.key + "_kinematics_filtered.csv", full: object.key + "_kinematics_selected_datasets.csv", order: "source dataset and source row order (table sorting is presentation only)" }, viewUrl: window.location.href }, null, 2) + "\n", object.key + "_view_metadata.json", "application/json")}>Download view metadata</Button>
+                <CopyViewLink />
+                <Button variant="outline" size="sm" onClick={() => updateView({ sky: !view.sky })}>{view.sky ? "Hide sky / widen table" : "Show sky view"}</Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {loadedRows.length === 0 ? (
             <Card className="mt-4">
               <CardContent className="p-6 text-sm text-muted-foreground">
@@ -795,27 +800,33 @@ export default function ObjectKinematicsClient({
           {loadedRows.length > 0 ? (
             <>
             <KinematicsPlots
-              rows={loadedRows}
+              xAxis={view.xAxis}
+              yAxis={view.yAxis}
+              onAxisChange={updateView}
+              rows={filteredRows}
               datasets={readyDatasetEntries.map((entry) => entry.style)}
               selectedId={selection?.id ?? null}
               onToggleSelect={toggleSelectionByRow}
             />
-            <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
+            <div className={`mt-4 grid gap-4 ${view.sky ? "xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]" : ""}`}>
               <div className="min-w-0">
                 <MemberKinematicsTable
+                  key={view.query + view.membership + view.datasets.join("|")}
+                  view={view}
+                  onViewChange={updateView}
                   columns={manifest.columns}
-                  rows={loadedRows}
+                  rows={filteredRows}
                   selectedId={selection?.id ?? null}
                   onToggleSelect={toggleSelectionByRow}
                 />
               </div>
-              <Card className="min-w-0">
+              {view.sky ? <Card className="min-w-0">
                 <CardHeader>
-                  <CardTitle>Selected-dataset sky view</CardTitle>
+                  <CardTitle>Filtered-sample sky view</CardTitle>
                   <CardDescription>
                     {selectedCoordinates
                       ? `${selection?.row.star_id || "selected"} @ RA=${selectedCoordinates.ra}, Dec=${selectedCoordinates.dec}`
-                      : `${plottedSources.length.toLocaleString()} plotted of ${loadedRows.length.toLocaleString()} selected-dataset records`}
+                      : `${plottedSources.length.toLocaleString()} plotted of ${filteredRows.length.toLocaleString()} filtered records`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -825,13 +836,13 @@ export default function ObjectKinematicsClient({
                     selectedId={selection?.id ?? null}
                     onToggleSelectId={toggleSelectionById}
                   />
-                  {plottedSources.length < loadedRows.length ? (
+                  {plottedSources.length < filteredRows.length ? (
                     <p className="mt-2 text-xs text-muted-foreground">
-                      The sky preview is deterministically sampled to at most {MAX_ALADIN_SOURCES.toLocaleString()} points.
+                      {coordinateCount.toLocaleString()} records have coordinates; {filteredRows.length - coordinateCount} lack coordinates. Above {MAX_ALADIN_SOURCES.toLocaleString()} coordinate pairs, the sky is deterministically sampled.
                     </p>
                   ) : null}
                 </CardContent>
-              </Card>
+              </Card> : null}
             </div>
             </>
           ) : null}

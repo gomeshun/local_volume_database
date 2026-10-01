@@ -18,6 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="min-h-dvh">
+          {process.env.NEXT_PUBLIC_REVIEW_PREVIEW === "true" ? <div className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-center text-sm text-amber-950">Review preview · experimental controls, separate from the production site</div> : null}
           <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
               <div className="flex flex-col gap-0.5">
