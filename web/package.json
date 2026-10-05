@@ -16,7 +16,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:ui": "node --experimental-strip-types --test scripts/test-ui.mjs scripts/test-view.mjs",
+    "test:ui": "node --experimental-strip-types --test scripts/test-ui.mjs scripts/test-view.mjs scripts/test-plot-navigation.mjs && node --import tsx --test scripts/test-plot-component.mjs",
     "test:data": "node scripts/test-generated-data.mjs",
     "check:artifacts": "node scripts/check-artifact-budgets.mjs",
     "test:view": "node --experimental-strip-types --test scripts/test-view.mjs"
@@ -42,9 +42,11 @@
     "autoprefixer": "^10.4.23",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
+    "jsdom": "^26.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
