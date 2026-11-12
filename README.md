@@ -93,7 +93,7 @@ The catalog can be directly loaded into Jupyter notebooks without having to down
     comb_all = table.Table.read('https://github.com/apace7/local_volume_database/releases/download/'+version_number_string+'/comb_all.csv')
 
 
-An interactive version of the LVDB is available here: [link](https://lvd-interactive.streamlit.app/) (made by Katya Gozman).
+Visualizations and interactive plots of the LVDB are lists on readthedocs: [link](https://local-volume-database.readthedocs.io/en/latest/catalogs.html#visualizations-and-interactive-plots).
 
 Community contributions to the LVDB are welcome. Please feel free to create a GitHub issue or contract me with any questions about LVDB content and/or potential contributions. 
 
@@ -118,7 +118,7 @@ The `LVDBDIR` environment variable is required to point to the location of the i
 
 ### ACKNOWLEDGEMENT:
 
-If you use this in your research please cite the overview paper and include a link to the github repository (https://github.com/apace7/local_volume_database). It is highly encouraged to cite the input references of the database if they are used in your work. An example acknowledgement in LaTeX (with BibTeX below): This work has made use of the Local Volume Database\footnote{\url{https://github.com/apace7/local_volume_database}} \citep{Pace2025OJAp....8E.142P}. 
+If you use this in your research please cite the overview paper and include a link to the github repository (https://github.com/apace7/local_volume_database). It is highly encouraged to cite the release version used in your work and to cite any input references of the database used in your work. An example acknowledgement in LaTeX (with BibTeX below): This work has made use of the Local Volume Database\footnote{\url{https://github.com/apace7/local_volume_database}} \citep{Pace2025OJAp....8E.142P}. 
 
 The BibTeX of the citation is available below and on [ADS](https://ui.adsabs.harvard.edu/abs/2025OJAp....8E.142P/exportcitation):
 

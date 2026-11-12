@@ -48,14 +48,14 @@ structure:
   position_angle: 0
   position_angle_em: 0
   position_angle_ep: 0
-  diameter_holm: 0
+  diameter_holmberg: 0
   ref_structure: ref
 distance:
   distance_modulus: 0
   distance_modulus_em: 0
   distance_modulus_ep: 0
   distance_fixed_host: True
-  distance_measurement_method: host, trgb, cmd, hb, rrl, tf, cmd_indices
+  distance_measurement_method: host, trgb, cmd, hb, rrl, tf, sn, nam, cmd_indices, eb, sbf
   ref_distance: ref
 m_v:
   apparent_magnitude_v: 0
