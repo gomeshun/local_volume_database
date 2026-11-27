@@ -339,7 +339,8 @@ def compute_mass_error(rhalf, rhalf_em, rhalf_ep, ellipticity, ellipticity_em, e
         else:
             y = np.zeros(len(x))
         
-        if ma.is_masked(distance_em)==False and ma.is_masked(distance)==False:
+        # The symmetric sampling model requires both reported uncertainty bounds.
+        if not any(ma.is_masked(x) for x in (distance, distance_em, distance_ep)):
             z = np.random.normal(distance, (distance_em+distance_ep)/2., n)
         elif ma.is_masked(distance)==False:
             z=np.empty(len(x))
@@ -389,7 +390,8 @@ def compute_rhalf_error(rhalf, rhalf_em, rhalf_ep, ellipticity, ellipticity_em, 
             y.fill(ellipticity)
         else:
             y = np.zeros(n)
-        if ma.is_masked(distance_em)==False and ma.is_masked(distance)==False:
+        # The symmetric sampling model requires both reported uncertainty bounds.
+        if not any(ma.is_masked(x) for x in (distance, distance_em, distance_ep)):
             z = np.random.normal(distance, (distance_em+distance_ep)/2., n)
         elif ma.is_masked(distance)==False:
             z=np.empty(n)

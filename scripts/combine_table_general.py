@@ -17,6 +17,7 @@ import os
 import corner
 
 import local_volume_database as lvdb
+from distance_columns import add_heliocentric_distances, dist_mod
 import warnings; warnings.filterwarnings('ignore')
 
 
@@ -89,12 +90,6 @@ for i,j in zip(col_name_dwarf, col_type_dwarf):
     comb_candidate[i] = np.ma.masked_all(len(comb_candidate), dtype=j)
     comb_host[i] = np.ma.masked_all(len(comb_host), dtype=j)
     comb_gc_other[i] = np.ma.masked_all(len(comb_gc_other), dtype=j)
-
-## distance modulus
-def dist_mod(mu, mu_em=0, mu_ep=0):
-    def dm(x):
-        return pow(10., x/5.+1.)/1000.
-    return dm(mu), dm(mu)-dm(mu-mu_em), dm(mu+mu_ep)-dm(mu)
 
 def add_to_table(yaml_input, table_output, place, ):
     ## this function add input to tables
@@ -183,18 +178,8 @@ def value_add(input_table, table_type='dwarf', **kwargs):
         return pow(10., -.4*(m_x - m_x_sun) )
     input_table['mass_stellar'] = np.log10(lum(input_table['M_V']) * 2.)
 
-    ## heliocentric distance
-    if np.ma.is_masked(input_table['distance_modulus_em']) ==True:
-        d, dem, dep = dist_mod( input_table['distance_modulus'])
-        input_table['distance'] = d
-        input_table['distance_em'] = np.ma.masked
-        input_table['distance_ep'] = np.ma.masked
-    else:
-        d, dem, dep = dist_mod( input_table['distance_modulus'], input_table['distance_modulus_em'], input_table['distance_modulus_ep'])
-        input_table['distance'] = d
-        input_table['distance_em'] = dem
-        input_table['distance_ep'] = dep
-    
+    add_heliocentric_distances(input_table)
+
     ## Galactic longitude and latitude
     c_table_input = coord.SkyCoord(ra=input_table['ra']*u.deg, dec=input_table['dec']*u.deg,distance=input_table['distance']*u.kpc,  frame='icrs',)
     input_table['ll'] = c_table_input.galactic.l.value
