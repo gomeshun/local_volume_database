@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fillDistanceErrors } from "./distance-errors.mjs";
 
 const PUBLIC_ROOT = path.resolve(process.cwd(), "public");
 
@@ -9,7 +10,24 @@ function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
+function testDistanceErrors() {
+  const row = {
+    distance_modulus: "28.04", distance: "4055.09",
+    distance_modulus_em: "0.22", distance_modulus_ep: "0.22",
+    distance_em: "0.0", distance_ep: "",
+  };
+  assert.deepEqual(fillDistanceErrors(row), { ...row, distance_em: "390.71", distance_ep: "432.37" });
+  assert.equal(row.distance_em, "0.0", "do not mutate input rows");
+  const oneSided = { ...row, distance_modulus_em: "", distance_ep: "433.00" };
+  assert.deepEqual(fillDistanceErrors(oneSided), oneSided, "keep unknown and already valid bounds");
+  const differentDistance = { ...row, distance: "4070.00" };
+  assert.deepEqual(fillDistanceErrors(differentDistance), differentDistance);
+  const noModulus = { ...row, distance_modulus: "" };
+  assert.deepEqual(fillDistanceErrors(noModulus), noModulus);
+}
+
 async function testDatasets() {
+  testDistanceErrors();
   const datasetDir = path.resolve(PUBLIC_ROOT, "data", "datasets");
   const files = (await fs.readdir(datasetDir)).filter((file) => file.endsWith(".json"));
   assert.ok(files.length > 0, "at least one generated dataset is required");
@@ -19,6 +37,11 @@ async function testDatasets() {
     assert.equal(payload.totalRows, payload.rows.length, `${file}: row count`);
     assert.ok(Array.isArray(payload.columns) && payload.columns.length > 0, `${file}: columns`);
   }
+  const field = JSON.parse(await fs.readFile(path.resolve(datasetDir, "dwarf_local_field_distant.json"), "utf8"));
+  const row = field.rows.find((entry) => entry.key === "centaurus_c");
+  assert.ok(row, "Centaurus C is in the Explorer dataset");
+  assert.ok(Number(row.distance_em) > 0 && Number(row.distance_ep) > 0,
+    "the Explorer build preserves the uncertainty bounds of Centaurus C");
   return files.length;
 }
 

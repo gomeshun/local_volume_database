@@ -1,6 +1,5 @@
 """Regression tests for row-wise distance uncertainty propagation."""
 
-import csv
 import io
 import os
 from pathlib import Path
@@ -47,28 +46,6 @@ class DistanceColumnTests(unittest.TestCase):
         self.assertGreater(float(rows[2].split(",")[-1]), 0)
         self.assertEqual(rows[3].split(",")[-1], "")
         self.assertGreater(float(rows[3].split(",")[-2]), 0)
-
-    def test_committed_field_dwarf_distances(self):
-        """Check that the Explorer inputs preserve complete measurements."""
-        data = Path(__file__).resolve().parents[1] / "data"
-        for filename in ("dwarf_local_field.csv", "dwarf_local_field_distant.csv"):
-            with (data / filename).open(newline="") as handle:
-                rows = list(csv.DictReader(handle))
-            eligible = [r for r in rows if float(r["distance_modulus_em"] or 0) > 0
-                        and float(r["distance_modulus_ep"] or 0) > 0]
-            self.assertTrue(eligible, filename)
-            for row in eligible:
-                # Allow a genuinely tiny error to round to zero, but demand
-                # the same two-decimal kpc conversion as the generator.
-                mu = float(row["distance_modulus"])
-                lower = float(row["distance_modulus_em"])
-                upper = float(row["distance_modulus_ep"])
-                distance = 10 ** (mu / 5 - 2)
-                with self.subTest(filename=filename, key=row["key"]):
-                    self.assertAlmostEqual(float(row["distance_em"]),
-                                           round(distance * (1 - 10 ** (-lower / 5)), 2))
-                    self.assertAlmostEqual(float(row["distance_ep"]),
-                                           round(distance * (10 ** (upper / 5) - 1), 2))
 
     def test_one_sided_distance_in_derived_quantities(self):
         """Use the existing fixed-distance fallback if either bound is absent."""

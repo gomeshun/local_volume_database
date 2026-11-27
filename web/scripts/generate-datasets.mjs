@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fillDistanceErrors } from "./distance-errors.mjs";
 
 // When run from `web/`, repo root is one directory up.
 const REPO_ROOT = path.resolve(process.cwd(), "..");
@@ -108,7 +109,8 @@ async function writeDatasets() {
   for (const file of files) {
     const slug = path.basename(file, ".csv");
     const title = titleBySlug[slug] ?? humanizeSlug(slug);
-    const { columns, rows } = await readCsv(path.resolve(dataDir, file));
+    const { columns, rows: sourceRows } = await readCsv(path.resolve(dataDir, file));
+    const rows = slug.startsWith("dwarf_") ? sourceRows.map(fillDistanceErrors) : sourceRows;
     const payload = {
       schemaVersion: 1,
       slug,
